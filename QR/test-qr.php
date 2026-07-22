@@ -19,6 +19,20 @@
             margin-top: 10px;
             background: #fff;
         }
+        .qr-wrap {
+            width: 220px;
+            height: 220px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .qr-wrap svg, .qr-wrap img {
+            max-width: 220px;
+            max-height: 220px;
+            width: 220px;
+            height: 220px;
+        }
         .details {
             margin-top: 12px;
             text-align: left;
@@ -92,11 +106,33 @@ $ownerName = $row['owname'];
 
 // URL encoded in the QR – must be reachable from a phone
 $url = app_log_form_url($row);
+
+// Build QR markup (SVG inline – works on Vercel without GD)
+$qrHtml = '';
+$barcodeClass = __DIR__ . '/tcpdf/tcpdf_barcodes_2d.php';
+if (is_file($barcodeClass)) {
+    require_once $barcodeClass;
+    if (class_exists('TCPDF2DBarcode')) {
+        $barcode = new TCPDF2DBarcode($url, 'QRCODE,H');
+        $svg = $barcode->getBarcodeSVGcode(6, 6, 'black');
+        // Keep only the SVG element for embedding
+        if (preg_match('/<svg[\s\S]*<\/svg>/i', $svg, $m)) {
+            $qrHtml = $m[0];
+        } else {
+            $qrHtml = $svg;
+        }
+    }
+}
+if ($qrHtml === '') {
+    // Fallback image endpoint
+    $qrHtml = '<img src="' . htmlspecialchars('qr-image.php?details=' . urlencode($url), ENT_QUOTES, 'UTF-8') . '" width="220" height="220" alt="QR Code" />';
+}
 ?>
     <h3>QR Code for <?php echo htmlspecialchars($ownerName); ?></h3>
     <div class="qr-card">
-        <img src="tcpdf/examples/barcodes/getMyBarcode.php?details=<?= urlencode($url) ?>"
-             width="220" height="220" alt="QR Code" />
+        <div class="qr-wrap">
+            <?php echo $qrHtml; ?>
+        </div>
         <div class="details">
             <p><strong>Owner:</strong> <?php echo htmlspecialchars($ownerName); ?></p>
             <p><strong>Serial Number:</strong> <?php echo htmlspecialchars($serialNumber); ?></p>
@@ -109,8 +145,8 @@ $url = app_log_form_url($row);
             <a href="view-laptops.php">Back</a>
         </p>
         <p class="no-print" style="font-size:12px;color:#666;max-width:320px;margin:8px auto;">
-            Phone and PC must be on the same Wi‑Fi. If scan fails, update <code>app_url.local.php</code>
-            with your current IP or an ngrok URL.
+            After scanning, choose In/Out and submit. You should see:
+            <em>“A log for … whose the owner is … is recorded successfully! Status: …”</em>
         </p>
     </div>
 </body>
