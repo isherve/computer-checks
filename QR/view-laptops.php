@@ -207,7 +207,7 @@ $email = $user['names'];
     <!--PHP CODES-->
     <?php
 
-include 'connection.php';
+require_once 'connection.php';
 
 if (isset($_POST['submit'])) {
     $search = trim($_POST['search']);
@@ -257,7 +257,7 @@ if (isset($_POST['submit'])) {
 
 <?php
 function selectStudent(){
-    include "connection.php";
+    require_once 'connection.php';
     try {    
         // Order by id in descending order to get the latest inserted first
         $stm = $pdo->prepare("SELECT computer_info.sn, computer_info.model, computer_info.owno, computer_info.owname FROM computer_info ORDER BY id DESC");
