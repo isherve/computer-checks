@@ -54,10 +54,74 @@ if ($format === 'csv') {
     exit;
 }
 
-// Build CSV link keeping current filters
+// ----- PDF download (TCPDF) -----
+if ($format === 'pdf') {
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+
+    require_once __DIR__ . '/tcpdf/tcpdf.php';
+
+    $landscape = count($report['columns']) > 6;
+    $pdf = new TCPDF($landscape ? 'L' : 'P', 'mm', 'A4', true, 'UTF-8', false);
+    $pdf->SetCreator('Computer Checks');
+    $pdf->SetAuthor('UTBrubavu');
+    $pdf->SetTitle($title);
+    $pdf->setPrintHeader(false);
+    $pdf->setPrintFooter(true);
+    $pdf->SetFooterMargin(12);
+    $pdf->SetMargins(10, 14, 10);
+    $pdf->SetAutoPageBreak(true, 16);
+    $pdf->SetFont('helvetica', '', 9);
+    $pdf->AddPage();
+
+    $safe = static function ($v): string {
+        return htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    };
+
+    $html = '<h2 style="text-align:center;color:#008080;">Computer Checks — UTBrubavu</h2>';
+    $html .= '<h3 style="text-align:center;">' . $safe($title) . '</h3>';
+    $html .= '<p style="font-size:9px;color:#555;">Generated: ' . $safe(date('Y-m-d H:i:s'))
+        . ' &nbsp;|&nbsp; By: ' . $safe($displayName)
+        . ' &nbsp;|&nbsp; Records: ' . count($flat) . '</p>';
+
+    $html .= '<table border="1" cellpadding="3" cellspacing="0" width="100%">';
+    $html .= '<thead><tr style="background-color:#343a40;color:#ffffff;font-weight:bold;">';
+    foreach ($report['columns'] as $col) {
+        $html .= '<th>' . $safe($col) . '</th>';
+    }
+    $html .= '</tr></thead><tbody>';
+
+    if (count($flat) === 0) {
+        $html .= '<tr><td colspan="' . count($report['columns']) . '" align="center">No records found</td></tr>';
+    } else {
+        $i = 0;
+        foreach ($flat as $row) {
+            $bg = ($i % 2 === 0) ? '#ffffff' : '#f2f2f2';
+            $html .= '<tr style="background-color:' . $bg . ';">';
+            foreach ($row as $cell) {
+                $html .= '<td>' . $safe($cell) . '</td>';
+            }
+            $html .= '</tr>';
+            $i++;
+        }
+    }
+    $html .= '</tbody></table>';
+    $html .= '<p style="font-size:8px;color:#777;margin-top:12px;">© UTBrubavu Computer Checks</p>';
+
+    $pdf->writeHTML($html, true, false, true, false, '');
+    $filename = 'computer-checks-report-' . date('Ymd-His') . '.pdf';
+    $pdf->Output($filename, 'D');
+    exit;
+}
+
+// Build download links keeping current filters
 $csvParams = $_GET;
 $csvParams['format'] = 'csv';
 $csvUrl = 'generate_report.php?' . http_build_query($csvParams);
+$pdfParams = $_GET;
+$pdfParams['format'] = 'pdf';
+$pdfUrl = 'generate_report.php?' . http_build_query($pdfParams);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -100,11 +164,14 @@ $csvUrl = 'generate_report.php?' . http_build_query($csvParams);
     <div class="toolbar no-print">
         <a class="btn btn-secondary" href="report.php"><i class="fa fa-arrow-left"></i> Back</a>
         <a class="btn btn-secondary" href="<?php echo htmlspecialchars($dash); ?>">Dashboard</a>
+        <a class="btn btn-danger" href="<?php echo htmlspecialchars($pdfUrl); ?>">
+            <i class="fa fa-file-pdf"></i> Download PDF
+        </a>
         <a class="btn btn-success" href="<?php echo htmlspecialchars($csvUrl); ?>">
             <i class="fa fa-download"></i> Download CSV
         </a>
         <button type="button" class="btn btn-primary" onclick="window.print()">
-            <i class="fa fa-print"></i> Print / Save as PDF
+            <i class="fa fa-print"></i> Print
         </button>
     </div>
 

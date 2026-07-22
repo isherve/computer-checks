@@ -132,6 +132,10 @@ $dash = ($user_type === 'Admin') ? 'admin-dashboard.php' : 'user-dashboard.php';
             var url = buildUrl('csv');
             if (url) window.location.href = url;
         }
+        function downloadPdf() {
+            var url = buildUrl('pdf');
+            if (url) window.location.href = url;
+        }
     </script>
 </head>
 <body>
@@ -158,6 +162,9 @@ $dash = ($user_type === 'Admin') ? 'admin-dashboard.php' : 'user-dashboard.php';
             <div class="quick">
                 <a class="btn btn-primary" href="generate_report.php?period=all">
                     <i class="fa fa-eye"></i> View all logs
+                </a>
+                <a class="btn btn-danger" href="generate_report.php?period=all&amp;format=pdf">
+                    <i class="fa fa-file-pdf"></i> Download all (PDF)
                 </a>
                 <a class="btn btn-success" href="generate_report.php?period=all&amp;format=csv">
                     <i class="fa fa-download"></i> Download all (CSV)
@@ -258,6 +265,9 @@ $dash = ($user_type === 'Admin') ? 'admin-dashboard.php' : 'user-dashboard.php';
 
                 <button type="button" class="btn btn-primary" onclick="viewReport()">
                     <i class="fa fa-eye"></i> View report
+                </button>
+                <button type="button" class="btn btn-danger" onclick="downloadPdf()">
+                    <i class="fa fa-file-pdf"></i> Download PDF
                 </button>
                 <button type="button" class="btn btn-success" onclick="downloadReport()">
                     <i class="fa fa-download"></i> Download CSV
