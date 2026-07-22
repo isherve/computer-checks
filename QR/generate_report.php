@@ -1,300 +1,145 @@
 <?php
-if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 if (!isset($_SESSION['user_type'])) {
-    header("Location: index.php");
+    header('Location: index.php');
     exit();
 }
 
-// Include the database connection
 require_once 'connection.php';
+require_once 'report_lib.php';
 
-// Fetch username based on user Type
 $user_type = $_SESSION['user_type'];
 $email = $_SESSION['email'];
-$stmt = $pdo->prepare("SELECT names FROM users WHERE user_type = ? AND email = ?");
+$stmt = $pdo->prepare('SELECT names FROM users WHERE user_type = ? AND email = ?');
 $stmt->execute([$user_type, $email]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
+$displayName = $user['names'] ?? $email;
+$dash = ($user_type === 'Admin') ? 'admin-dashboard.php' : 'user-dashboard.php';
 
-// Display the email
-$email = $user['names'];
-?>
-
-<?php
-// Database connection
-require_once 'connection.php';
-
-$action = isset($_GET['action']) ? $_GET['action'] : '';
-$period = isset($_GET['period']) ? $_GET['period'] : '';
-$overall = isset($_GET['overall']) ? $_GET['overall'] : '';
-
-$query = "";
-$title = "";
-$params = [];
-
-if ($overall) {
-    switch ($period) {
-        case 'daily':
-            $date = $_GET['date'];
-            $query = "SELECT log_id, sn, model, type, owno, owname, action, comment, date FROM logs WHERE DATE(date) = :date";
-            $title = "Overall Daily Report on " . $date;
-            $params = [':date' => $date];
-            break;
-        case 'weekly':
-            $startDate = $_GET['start_date'];
-            $endDate = $_GET['end_date'];
-            $query = "SELECT log_id, sn, model, type, owno, owname, action, comment, date FROM logs WHERE DATE(date) BETWEEN :start_date AND :end_date";
-            $title = "Overall Weekly Report from " . $startDate . " to " . $endDate;
-            $params = [':start_date' => $startDate, ':end_date' => $endDate];
-            break;
-        case 'monthly':
-            $month = $_GET['month'];
-            $query = "SELECT log_id, sn, model, type, owno, owname, action, comment, date FROM logs WHERE DATE_FORMAT(date, '%Y-%m') = :month";
-            $title = "Overall Monthly Report for " . $month;
-            $params = [':month' => $month];
-            break;
-        case 'annual':
-            $year = $_GET['year'];
-            $query = "SELECT log_id, sn, model, type, owno, owname, action, comment, date FROM logs WHERE YEAR(date) = :year";
-            $title = "Overall Annual Report for " . $year;
-            $params = [':year' => $year];
-            break;
-        case 'individual':
-            $date = $_GET['date'];
-            $sn = $_GET['sn'];
-            $query = "SELECT log_id, sn, model, type, owno, owname, action, comment, date FROM logs WHERE DATE(date) = :date AND sn = :sn";
-            $title = "Overall Individual Report on " . $date . " for Serial Number " . $sn;
-            $params = [':date' => $date, ':sn' => $sn];
-            break;
-        default:
-            die("Invalid period selected.");
-    }
-} else {
-    switch ($period) {
-        case 'daily':
-            $date = $_GET['date'];
-            $start_hour = $_GET['start_hour'];
-            $start_minute = $_GET['start_minute'];
-            $end_hour = $_GET['end_hour'];
-            $end_minute = $_GET['end_minute'];
-            
-            // Combine date and hour into a single datetime string
-            $start_datetime = $date . ' ' . $start_hour . ':' . $start_minute . ':00';
-            $end_datetime = $date . ' ' . $end_hour . ':' . $end_minute . ':59';
-
-            $query = "SELECT log_id, sn, type, owname AS name, date AS check_time, comment 
-                      FROM logs 
-                      WHERE action = :action 
-                      AND date BETWEEN :start_datetime AND :end_datetime";
-            
-            $title = "Daily Report of Computers " . ($action == 'check-in' ? "Checked In" : "Checked Out") . 
-                     " on " . $date . " from " . $start_hour . ":" . $start_minute . " to " . $end_hour . ":" . $end_minute;
-            
-            $params = [
-                ':action' => $action,
-                ':start_datetime' => $start_datetime,
-                ':end_datetime' => $end_datetime
-            ];
-            break;
-        case 'weekly':
-            $startDate = $_GET['start_date'];
-            $endDate = $_GET['end_date'];
-            $query = "SELECT log_id, sn, type, owname AS name, date AS check_time, comment FROM logs WHERE action = :action AND DATE(date) BETWEEN :start_date AND :end_date";
-            $title = "Weekly Report of Computers " . ($action == 'check-in' ? "Checked In" : "Checked Out") . " from " . $startDate . " to " . $endDate;
-            $params = [':action' => $action, ':start_date' => $startDate, ':end_date' => $endDate];
-            break;
-        case 'monthly':
-            $month = $_GET['month'];
-            $query = "SELECT log_id, sn, type, owname AS name, date AS check_time, comment FROM logs WHERE action = :action AND DATE_FORMAT(date, '%Y-%m') = :month";
-            $title = "Monthly Report of Computers " . ($action == 'check-in' ? "Checked In" : "Checked Out") . " for " . $month;
-            $params = [':action' => $action, ':month' => $month];
-            break;
-        case 'annual':
-            $year = $_GET['year'];
-            $query = "SELECT log_id, sn, type, owname AS name, date AS check_time, comment FROM logs WHERE action = :action AND YEAR(date) = :year";
-            $title = "Annual Report of Computers " . ($action == 'check-in' ? "Checked In" : "Checked Out") . " for " . $year;
-            $params = [':action' => $action, ':year' => $year];
-            break;
-        case 'individual':
-            $date = $_GET['date'];
-            $sn = $_GET['sn'];
-            $query = "SELECT log_id, sn, type, owname AS name, date AS check_time, comment FROM logs WHERE action = :action AND DATE(date) = :date AND sn = :sn";
-            $title = "Individual Report of Computers " . ($action == 'check-in' ? "Checked In" : "Checked Out") . " on " . $date . " with Serial Number " . $sn;
-            $params = [':action' => $action, ':date' => $date, ':sn' => $sn];
-            break;
-        default:
-            die("Invalid period selected.");
-    }
+try {
+    $report = app_build_report($pdo, $_GET);
+} catch (Throwable $e) {
+    http_response_code(400);
+    echo '<!DOCTYPE html><html><body style="font-family:Arial;padding:2rem;"><h2>Report error</h2><p>'
+        . htmlspecialchars($e->getMessage())
+        . '</p><p><a href="report.php">Back to Reports</a></p></body></html>';
+    exit;
 }
 
-$stmt = $pdo->prepare($query);
-$stmt->execute($params);
-$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$flat = app_report_flat_rows($report);
+$title = $report['title'];
+$format = isset($_GET['format']) ? strtolower((string)$_GET['format']) : 'html';
 
+// ----- CSV download -----
+if ($format === 'csv') {
+    $filename = 'computer-checks-report-' . date('Ymd-His') . '.csv';
+    header('Content-Type: text/csv; charset=UTF-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+    $out = fopen('php://output', 'w');
+    // UTF-8 BOM for Excel
+    fwrite($out, "\xEF\xBB\xBF");
+    fputcsv($out, [$title]);
+    fputcsv($out, ['Generated', date('Y-m-d H:i:s')]);
+    fputcsv($out, ['Campus', 'UTBrubavu – Computer Checks']);
+    fputcsv($out, []);
+    fputcsv($out, $report['columns']);
+    foreach ($flat as $row) {
+        fputcsv($out, $row);
+    }
+    fclose($out);
+    exit;
+}
+
+// Build CSV link keeping current filters
+$csvParams = $_GET;
+$csvParams['format'] = 'csv';
+$csvUrl = 'generate_report.php?' . http_build_query($csvParams);
 ?>
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($title); ?></title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="icons/css/all.css">
     <style>
-        body {
-            display: flex;
-            font-family: poppins;
-        }
-        .container {
-            margin-top: 50px;
-            margin-left: 300px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .sidebar {
-            width: 150px;
-            background-color: #f8f9fa;
-            padding: 20px;
-            height: 100vh;
-            position: fixed;
-            top: 19vh;
-            left: 0;
-        }
-        .content {
-            flex: 1;
-            padding: 10px;
-            margin-left: 150px;
-        }
-        .header {
-            color: #ffffff;
-            padding: 20px 0;
-        }
-        .logo {
-            max-width: 120px; /* Adjust width as needed */
-        }
-        .image-container {
-            text-align: center;
-            border-radius: 50%;
-        }
+        body { font-family: Poppins, Arial, sans-serif; background: #f4f6f8; margin: 0; }
         header {
-            background-color: #343a40;
-            color: #ffffff;
-            padding: 1em;
-            text-align: center;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 999; /* Ensure header stays above other content */
+            background: #343a40; color: #fff; padding: 12px 20px;
+            position: sticky; top: 0; z-index: 10;
         }
-        section {
-            margin-top: 19Svh;
-            display: flex;
+        header h1 { font-size: 1.25rem; margin: 0; }
+        header h5 { margin: 4px 0 0; font-weight: normal; opacity: .9; }
+        .wrap { max-width: 1100px; margin: 24px auto; padding: 0 16px 40px; }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+        .card-panel {
+            background: #fff; border-radius: 8px; padding: 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
         }
-        .content {
-            flex: 1;
-            padding: 20px;
-        }
+        .meta { color: #666; font-size: 0.9rem; margin-bottom: 12px; }
+        table { font-size: 0.92rem; }
         @media print {
-            .btn, .sidebar {
-                display: none;
-            }
-            .content {
-                width: 100%;
-                padding: 0;
-            }
-            title {
-                display: none;
-            }
-            nav {
-                display: none;
-            }
-            input {
-                display: none;
-            }
-            button {
-                display: none;
-            }
-            header {
-                display: none;
-            }
+            header, .toolbar, .no-print { display: none !important; }
+            body { background: #fff; }
+            .card-panel { box-shadow: none; padding: 0; }
+            .wrap { margin: 0; max-width: none; }
         }
     </style>
 </head>
 <body>
-<header>
-    <img src="img/QR-logo.JPG" alt="Logo" class="logo img-fluid col-md-4 mt-0 image-container float-left">
-    <h1>User | Dashboard</h1>
-    <h5>Computer Checks</h5>
+<header class="no-print">
+    <h1><?php echo htmlspecialchars($user_type); ?> | Reports</h1>
+    <h5>Computer Checks — UTBrubavu</h5>
 </header>
-<section>
-    <div class="sidebar">
-        <h4>Menu</h4>
-        <ul class="nav flex-column">
-            <li class="nav-item"><a class="nav-link" href="user-dashboard.php"><i class="fa fa-home" aria-hidden="true"></i>Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link" href="report.php"><i class="fa fa-book" aria-hidden="true"></i>Reports</a></li>
-            <li class="nav-item"><a class="nav-link" href="logout.php"><i class="fa fa-sign-out" aria-hidden="true"></i>Logout</a></li>
-        </ul>
+<div class="wrap">
+    <div class="toolbar no-print">
+        <a class="btn btn-secondary" href="report.php"><i class="fa fa-arrow-left"></i> Back</a>
+        <a class="btn btn-secondary" href="<?php echo htmlspecialchars($dash); ?>">Dashboard</a>
+        <a class="btn btn-success" href="<?php echo htmlspecialchars($csvUrl); ?>">
+            <i class="fa fa-download"></i> Download CSV
+        </a>
+        <button type="button" class="btn btn-primary" onclick="window.print()">
+            <i class="fa fa-print"></i> Print / Save as PDF
+        </button>
     </div>
-    <div class="content">
-        <button class="btn btn-primary mb-3" onclick="window.print()">Print Report</button>
-        <h5><?php echo htmlspecialchars($title); ?></h5>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <?php if ($overall): ?>
-                        <th>No</th>
-                        <th>Serial Number</th>
-                        <th>Model</th>
-                        <th>Owner's Type</th>
-                        <th>Owner ID</th>
-                        <th>Owner's Name</th>
-                        <th>Status</th>
-                        <th>Check Time</th>
-                        <th>Comment</th>
-                        
-                    <?php else: ?>
-                        <th>No</th>
-                        <th>SN</th>
-                        <th>Owner's Type</th>
-                        <th>Name</th>
-                        <th>Check Time</th>
-                        <th>Comment</th>
-                    <?php endif; ?>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                if (count($result) > 0) {
-                    $no = 1;
-                    foreach ($result as $row) {
-                        echo "<tr>";
-                        if ($overall) {
-                            echo "<td>" . $no++ . "</td>
-                                  <td>" . htmlspecialchars($row['sn']) . "</td>
-                                  <td>" . htmlspecialchars($row['model']) . "</td>
-                                  <td>" . htmlspecialchars($row['type']) . "</td>
-                                  <td>" . htmlspecialchars($row['owno']) . "</td>
-                                  <td>" . htmlspecialchars($row['owname']) . "</td>
-                                  <td>" . htmlspecialchars($row['action']) . "</td>
-                                  <td>" . htmlspecialchars($row['date']) . "</td>
-                                  <td>" . htmlspecialchars($row['comment']) . "</td>";
-                        } else {
-                            echo "<td>" . $no++ . "</td>
-                                  <td>" . htmlspecialchars($row['sn']) . "</td>
-                                  <td>" . htmlspecialchars($row['type']) . "</td>
-                                  <td>" . htmlspecialchars($row['name']) . "</td>
-                                  <td>" . htmlspecialchars($row['check_time']) . "</td>
-                                  <td>" . htmlspecialchars($row['comment']) . "</td>";
-            
-                        }
-                        echo "</tr>";
-                    }
-                } else {
-                    echo "<tr><td colspan='9' class='text-center'>No records found</td></tr>";
-                }
-                ?>
-            </tbody>
-        </table>
+
+    <div class="card-panel" id="report-print">
+        <h4><?php echo htmlspecialchars($title); ?></h4>
+        <p class="meta">
+            Generated <?php echo date('Y-m-d H:i'); ?> ·
+            By <?php echo htmlspecialchars($displayName); ?> ·
+            <?php echo count($flat); ?> record(s)
+        </p>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-sm">
+                <thead class="thead-dark">
+                    <tr>
+                        <?php foreach ($report['columns'] as $col): ?>
+                            <th><?php echo htmlspecialchars($col); ?></th>
+                        <?php endforeach; ?>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php if (count($flat) === 0): ?>
+                    <tr><td colspan="<?php echo count($report['columns']); ?>" class="text-center">No records found</td></tr>
+                <?php else: ?>
+                    <?php foreach ($flat as $row): ?>
+                        <tr>
+                            <?php foreach ($row as $cell): ?>
+                                <td><?php echo htmlspecialchars((string)$cell); ?></td>
+                            <?php endforeach; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
-</section>
+</div>
 </body>
 </html>

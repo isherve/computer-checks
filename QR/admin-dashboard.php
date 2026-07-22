@@ -203,10 +203,15 @@ $email = $user['names'];
         </a>
       </li>
       <li class="nav-item">
-        
         <a class="nav-link" href="add-users.php">
         <i class="fa fa-plus-circle" aria-hidden="true"></i>
          Add new user 
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="report.php">
+          <i class="fa fa-book" aria-hidden="true"></i>
+          Reports
         </a>
       </li>
       <li class="nav-item">
