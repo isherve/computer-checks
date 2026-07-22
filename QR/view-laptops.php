@@ -257,7 +257,7 @@ if (isset($_POST['submit'])) {
 
 <?php
 function selectStudent(){
-    require_once 'connection.php';
+    global $pdo;
     try {    
         // Order by id in descending order to get the latest inserted first
         $stm = $pdo->prepare("SELECT computer_info.sn, computer_info.model, computer_info.owno, computer_info.owname FROM computer_info ORDER BY id DESC");

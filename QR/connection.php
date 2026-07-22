@@ -74,9 +74,9 @@ if (!function_exists('app_pdo')) {
     }
 }
 
-if (!isset($pdo) || !($pdo instanceof PDO)) {
+if (!isset($GLOBALS['pdo']) || !($GLOBALS['pdo'] instanceof PDO)) {
     try {
-        $pdo = app_pdo();
+        $GLOBALS['pdo'] = app_pdo();
     } catch (PDOException $e) {
         http_response_code(500);
         echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Database</title></head><body style="font-family:Arial;padding:2rem;">';
@@ -87,3 +87,4 @@ if (!isset($pdo) || !($pdo instanceof PDO)) {
         exit;
     }
 }
+$pdo = $GLOBALS['pdo'];

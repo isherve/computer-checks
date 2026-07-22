@@ -269,7 +269,7 @@ if (isset($_POST['submit'])) {
 
 <?php
 function selectStudent(){
-include "connection.php";
+global $pdo;
 try {    
     $stm=$pdo->prepare("SELECT users.nid, users.user_type,users.names,users.email FROM users");
     $stm->execute ();
