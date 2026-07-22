@@ -42,12 +42,12 @@ CREATE TABLE `computer_info` (
 --
 
 INSERT INTO `computer_info` (`id`, `sn`, `model`, `type`, `owno`, `owname`, `date`) VALUES
-(21, 'PF4L50WX', 'LENOVO', 'student', '21RP06834', 'Mfitumukiza Eric', '2024-07-31'),
-(22, 'PF4KMLM6', 'LENOVO', 'student', '21RP06780', 'Tuyishimire Gaspard', '2024-07-31'),
-(23, 'PF4KLQML', 'LENOVO', 'student', '21RP03769', 'Gahozo Sosthene', '2024-07-31'),
+(21, 'PF4L50WX', 'LENOVO', 'student', '21UTB06834', 'Mfitumukiza Eric', '2024-07-31'),
+(22, 'PF4KMLM6', 'LENOVO', 'student', '21UTB06780', 'Tuyishimire Gaspard', '2024-07-31'),
+(23, 'PF4KLQML', 'LENOVO', 'student', '21UTB03769', 'Gahozo Sosthene', '2024-07-31'),
 (24, 'TRF004', 'HP', 'other', '1200080015190064', 'Uwimana', '2024-08-01'),
 (25, 'TRF005', 'HP', 'staff', '1200280015190064', 'Rukundo', '2024-08-05'),
-(27, 'wr12346', 'DELL', 'student', '21RP06836', 'Gahozo Sosthene', '2024-08-06');
+(27, 'wr12346', 'DELL', 'student', '21UTB06836', 'Gahozo Sosthene', '2024-08-06');
 
 -- --------------------------------------------------------
 
@@ -72,14 +72,14 @@ CREATE TABLE `logs` (
 --
 
 INSERT INTO `logs` (`log_id`, `sn`, `model`, `type`, `owno`, `owname`, `action`, `comment`, `date`) VALUES
-(25, 'PF4KLQML', 'LENOVO', 'student', '21RP03769', 'Gahozo Sosthene', 'check-in', '', '2024-07-31 11:37:14'),
-(26, 'PF4KMLM6', 'LENOVO', 'student', '21RP06780', 'Tuyishimire Gaspard', 'check-in', '', '2024-07-31 13:20:30'),
-(27, 'PF4L50WX', 'LENOVO', 'student', '21RP06834', 'Mfitumukiza Eric', 'check-in', '', '2024-07-31 13:21:01'),
-(28, 'PF4KLQML', 'LENOVO', 'student', '21RP03769', 'Gahozo Sosthene', 'check-out', '', '2024-07-31 13:21:36'),
-(29, 'PF4KMLM6', 'LENOVO', 'student', '21RP06780', 'Tuyishimire Gaspard', 'check-out', '', '2024-07-31 13:22:25'),
-(30, 'PF4L50WX', 'LENOVO', 'student', '21RP06834', 'Mfitumukiza Eric', 'check-out', '', '2024-07-31 13:24:52'),
+(25, 'PF4KLQML', 'LENOVO', 'student', '21UTB03769', 'Gahozo Sosthene', 'check-in', '', '2024-07-31 11:37:14'),
+(26, 'PF4KMLM6', 'LENOVO', 'student', '21UTB06780', 'Tuyishimire Gaspard', 'check-in', '', '2024-07-31 13:20:30'),
+(27, 'PF4L50WX', 'LENOVO', 'student', '21UTB06834', 'Mfitumukiza Eric', 'check-in', '', '2024-07-31 13:21:01'),
+(28, 'PF4KLQML', 'LENOVO', 'student', '21UTB03769', 'Gahozo Sosthene', 'check-out', '', '2024-07-31 13:21:36'),
+(29, 'PF4KMLM6', 'LENOVO', 'student', '21UTB06780', 'Tuyishimire Gaspard', 'check-out', '', '2024-07-31 13:22:25'),
+(30, 'PF4L50WX', 'LENOVO', 'student', '21UTB06834', 'Mfitumukiza Eric', 'check-out', '', '2024-07-31 13:24:52'),
 (31, 'TRF005', 'HP', 'staff', '1200280015190064', 'Rukundo', 'check-in', 'Well done ✅', '2024-08-06 14:06:56'),
-(32, 'wr12346', 'DELL', 'student', '21RP06836', 'Gahozo Sosthene', 'check-out', '', '2024-08-06 14:17:52');
+(32, 'wr12346', 'DELL', 'student', '21UTB06836', 'Gahozo Sosthene', 'check-out', '', '2024-08-06 14:17:52');
 
 -- --------------------------------------------------------
 
@@ -117,8 +117,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `user_type`, `nid`, `names`, `email`, `password`) VALUES
-(8, 'Guest', '21RP03769', 'Gahozo Sosthene', 'gahozo909@gmail.com', '$2y$10$JTC3d7o2Lr2Faar1ImHCp.x.Z2AqahvgZCDH36XMEYmyu.f9q/NBC'),
-(32, 'Admin', '21RP06834', 'mfitus', 'mfitumukizaeric3@gmail.com', '$2y$10$yAB2WkJHr9YRszgsB3mNfOsE1ckoxzH/1Yzs.shcsMR2O/rONjvx.'),
+(8, 'Guest', '21UTB03769', 'Gahozo Sosthene', 'gahozo909@gmail.com', '$2y$10$JTC3d7o2Lr2Faar1ImHCp.x.Z2AqahvgZCDH36XMEYmyu.f9q/NBC'),
+(32, 'Admin', '21UTB06834', 'mfitus', 'mfitumukizaeric3@gmail.com', '$2y$10$yAB2WkJHr9YRszgsB3mNfOsE1ckoxzH/1Yzs.shcsMR2O/rONjvx.'),
 (33, 'Guest', '12345', 'mimi', 'mimi@gmail.com', '$2y$10$UIBhQSUx6N2M66xe3oBHk.WKDgB6ZGU3SXMudm0.o07sS4Id77D2S');
 
 --

@@ -306,8 +306,8 @@ if (isset($_POST['submit'])) {
             var registrationNumber = document.getElementById("registrationNumber");
             
             if (type === "student") {
-                registrationNumber.placeholder = "Enter Registration Number (e.g., 12RP3456)";
-                registrationNumber.pattern = "^\\d{2}RP\\d+$";
+                registrationNumber.placeholder = "Enter Registration Number (e.g., 12UTB3456)";
+                registrationNumber.pattern = "^\\d{2}UTB\\d+$";
             } else if (type === "staff") {
               registrationNumber.placeholder = "Enter NID (16 digits, starting with 1)";
               registrationNumber.pattern = "^1\\d{15}$";
@@ -353,10 +353,10 @@ if (isset($_POST['submit'])) {
             var isValid = true;
 
             if (type === "student") {
-                regPattern = /^\d{2}RP\d+$/; // Pattern: 2 digits, RP, followed by digits
+                regPattern = /^\d{2}UTB\d+$/; // Pattern: 2 digits, UTB, followed by digits
                 if (!regPattern.test(regNumber)) {
-                    alert("Registration Number must be in the format: 2 digits, RP, followed by digits.");
-                    document.getElementById("regError").textContent = "Registration Number must be in the format: 2 digits, RP, followed by digits.";
+                    alert("Registration Number must be in the format: 2 digits, UTB, followed by digits.");
+                    document.getElementById("regError").textContent = "Registration Number must be in the format: 2 digits, UTB, followed by digits.";
                     isValid = false;
                 }
             } else if (type === "staff") {
