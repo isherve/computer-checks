@@ -24,7 +24,7 @@ try {
     http_response_code(400);
     echo '<!DOCTYPE html><html><body style="font-family:Arial;padding:2rem;"><h2>Report error</h2><p>'
         . htmlspecialchars($e->getMessage())
-        . '</p><p><a href="reports.php">Back to Reports</a> · <a href="report.php">Logs</a></p></body></html>';
+        . '</p><p><a href="report.php">Back to Logs</a></p></body></html>';
     exit;
 }
 
@@ -130,13 +130,12 @@ $pdfUrl = 'generate_report.php?' . http_build_query($pdfParams);
 </head>
 <body>
 <header class="no-print">
-    <h1><?php echo htmlspecialchars($user_type); ?> | Report</h1>
+    <h1><?php echo htmlspecialchars($user_type); ?> | Logs</h1>
     <h5>Computer Checks — UTBrubavu</h5>
 </header>
 <div class="wrap">
     <div class="toolbar no-print">
-        <a class="btn btn-secondary" href="reports.php"><i class="fa fa-arrow-left"></i> Back to Reports</a>
-        <a class="btn btn-secondary" href="report.php"><i class="fa fa-book"></i> Logs</a>
+        <a class="btn btn-secondary" href="report.php"><i class="fa fa-arrow-left"></i> Back to Logs</a>
         <a class="btn btn-secondary" href="<?php echo htmlspecialchars($dash); ?>">Dashboard</a>
         <a class="btn btn-danger" href="<?php echo htmlspecialchars($pdfUrl); ?>">
             <i class="fa fa-file-pdf"></i> Download PDF

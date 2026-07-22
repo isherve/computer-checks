@@ -213,12 +213,6 @@ if (isset($_POST['submit'])) {
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="reports.php">
-          <i class="fa fa-file-alt" aria-hidden="true"></i>
-          Reports
-        </a>
-      </li>
-      <li class="nav-item">
         <a class="nav-link" href="change-password.php">
           <i class="fa fa-pencil" aria-hidden="true"></i>
           Change Password
