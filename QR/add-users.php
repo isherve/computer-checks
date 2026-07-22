@@ -1,4 +1,4 @@
-﻿<!-- codes for checking login -->
+<!-- codes for checking login -->
 <?php
 
 session_start();

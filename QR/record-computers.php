@@ -1,4 +1,4 @@
-﻿<!-- codes reserved for login -->
+<!-- codes reserved for login -->
 <?php
 
 session_start();
