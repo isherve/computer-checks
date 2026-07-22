@@ -44,7 +44,7 @@ if (!function_exists('app_pdo')) {
 
             // Vercel functions can only write under /tmp
             $runtimeDir = sys_get_temp_dir();
-            $runtime = $runtimeDir . DIRECTORY_SEPARATOR . 'computer_checks.sqlite';
+            $runtime = $runtimeDir . DIRECTORY_SEPARATOR . 'computer_checks_utb.sqlite';
             if (!is_file($runtime) || filesize($runtime) === 0) {
                 if (!@copy($seed, $runtime)) {
                     // Fall back to read-only seed (login works; writes may fail)
