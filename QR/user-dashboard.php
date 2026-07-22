@@ -218,6 +218,13 @@ $email = $user['names'];
         Logs
         </a>
       </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="reports.php">
+        <i class="fa fa-file-alt" aria-hidden="true"></i>
+        Reports
+        </a>
+      </li>
       
       <li class="nav-item">
         

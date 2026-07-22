@@ -215,6 +215,12 @@ $email = $user['names'];
         </a>
       </li>
       <li class="nav-item">
+        <a class="nav-link" href="reports.php">
+          <i class="fa fa-file-alt" aria-hidden="true"></i>
+          Reports
+        </a>
+      </li>
+      <li class="nav-item">
         <a class="nav-link" href="logout.php">
           <i class="fa fa-sign-out" aria-hidden="true"></i>
           Logout

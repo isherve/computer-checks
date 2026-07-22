@@ -290,6 +290,9 @@ $preview = array_slice($recentFlat, 0, 15);
                 <li class="nav-item">
                     <a class="nav-link active" href="report.php"><i class="fa fa-book"></i> Logs</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="reports.php"><i class="fa fa-file-alt"></i> Reports</a>
+                </li>
                 <?php if (!$isAdmin): ?>
                 <li class="nav-item">
                     <a class="nav-link" href="change-password.php"><i class="fa fa-pencil"></i> Change Password</a>
