@@ -1,0 +1,12 @@
+.vercel
+QR/vendor
+QR.zip
+QR_extracted
+__pycache__
+*.pyc
+~$*
+CORRECTED ACADEMIC FINAL YEAR PROJECT_Eric and Gaspard.pdf
+Chapter4_Figures
+Chapter5_Figures
+*.docx
+*.py

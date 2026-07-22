@@ -1,0 +1,17 @@
+{
+  "functions": {
+    "api/index.php": {
+      "runtime": "vercel-php@0.7.4",
+      "memory": 1024,
+      "maxDuration": 30,
+      "includeFiles": "QR/**"
+    }
+  },
+  "routes": [
+    { "src": "/styles.css", "dest": "/QR/styles.css" },
+    { "src": "/img/(.*)", "dest": "/QR/img/$1" },
+    { "src": "/icons/(.*)", "dest": "/QR/icons/$1" },
+    { "src": "/tcpdf/(.*)", "dest": "/QR/tcpdf/$1" },
+    { "src": "/(.*)", "dest": "/api/index.php" }
+  ]
+}

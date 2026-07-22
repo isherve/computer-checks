@@ -1,0 +1,32 @@
+# Dependencies / caches
+QR/vendor/
+QR/composer.lock
+**/__pycache__/
+*.pyc
+.node_modules/
+
+# Local / duplicate archives
+QR.zip
+QR_extracted/
+QR/**/*.zip
+QR/php-qrcode-detector-decoder-master/
+QR/phpqr/php-qrcode-main.zip
+~$*.docx
+
+# IDE / OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Local PHP/runtime artifacts
+QR/qr_test.png
+QR/gdcheck.php
+QR/info.php
+.env
+.env.*
+QR/app_url.local.php
+
+# Optional large binaries
+*.tmp
+CORRECTED ACADEMIC FINAL YEAR PROJECT_Eric and Gaspard.pdf
+.vercel

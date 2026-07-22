@@ -1,0 +1,29 @@
+body {
+    background-color: #f8f9fa;
+    font-family: poppins;
+}
+
+.navbar-brand {
+    font-size: 1.5em;
+}
+
+.container {
+    padding-top: 20px;
+    font-family: poppins;
+}
+
+#main-content {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: poppins;
+}
+
+.report-form {
+    margin-bottom: 20px;
+}
+
+.report-results {
+    margin-top: 20px;
+}
