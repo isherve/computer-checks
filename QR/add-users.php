@@ -1,7 +1,7 @@
 <!-- codes for checking login -->
 <?php
 
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
 if (!isset($_SESSION['user_type'])) {
     header("Location: index.php");
     exit();
@@ -26,7 +26,7 @@ $email = $user['names'];
 <!-- codes reserved for insert -->
 
 <?php
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
 
 // Include the database connection
 include 'connection.php';
