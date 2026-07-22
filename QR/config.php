@@ -100,11 +100,7 @@ if (!function_exists('app_detect_lan_ip')) {
 if (!function_exists('app_log_form_url')) {
     function app_log_form_url(array $row): string
     {
-        return app_base_url() . '/log_form.php'
-            . '?sn=' . rawurlencode((string)$row['sn'])
-            . '&model=' . rawurlencode((string)$row['model'])
-            . '&type=' . rawurlencode((string)($row['type'] ?? ''))
-            . '&owno=' . rawurlencode((string)$row['owno'])
-            . '&owname=' . rawurlencode((string)$row['owname']);
+        // Short URL = denser, easier-to-scan QR (details loaded from DB on open)
+        return app_base_url() . '/log_form.php?sn=' . rawurlencode((string)$row['sn']);
     }
 }

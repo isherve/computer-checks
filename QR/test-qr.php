@@ -15,23 +15,25 @@
             display: inline-block;
             border: 1px solid #ddd;
             border-radius: 8px;
-            padding: 20px;
+            padding: 24px;
             margin-top: 10px;
             background: #fff;
         }
         .qr-wrap {
-            width: 220px;
-            height: 220px;
-            margin: 0 auto;
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 8px;
+            padding: 12px;
+            background: #fff;
+            box-sizing: content-box;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .qr-wrap svg, .qr-wrap img {
-            max-width: 220px;
-            max-height: 220px;
-            width: 220px;
-            height: 220px;
+            width: 280px;
+            height: 280px;
+            image-rendering: pixelated;
         }
         .details {
             margin-top: 12px;
@@ -46,10 +48,10 @@
             margin: 10px auto;
         }
         @media print {
-            title, nav, input, button, .no-print {
-                display: none !important;
-            }
+            .no-print { display: none !important; }
             body { background: #fff; }
+            .qr-wrap { width: 320px; height: 320px; }
+            .qr-wrap svg, .qr-wrap img { width: 320px; height: 320px; }
         }
     </style>
 </head>
@@ -57,6 +59,7 @@
 <?php
 require_once 'connection.php';
 require_once 'config.php';
+require_once 'qr_helper.php';
 
 $row = null;
 
@@ -100,32 +103,19 @@ if (!$row) {
 
 $serialNumber = $row['sn'];
 $model = $row['model'];
-$type = $row['type'];
 $ownerNumber = $row['owno'];
 $ownerName = $row['owname'];
 
-// URL encoded in the QR – must be reachable from a phone
+// Short public URL encoded in the QR
 $url = app_log_form_url($row);
-
-// Build QR markup (SVG inline – works on Vercel without GD)
-$qrHtml = '';
-$barcodeClass = __DIR__ . '/tcpdf/tcpdf_barcodes_2d.php';
-if (is_file($barcodeClass)) {
-    require_once $barcodeClass;
-    if (class_exists('TCPDF2DBarcode')) {
-        $barcode = new TCPDF2DBarcode($url, 'QRCODE,H');
-        $svg = $barcode->getBarcodeSVGcode(6, 6, 'black');
-        // Keep only the SVG element for embedding
-        if (preg_match('/<svg[\s\S]*<\/svg>/i', $svg, $m)) {
-            $qrHtml = $m[0];
-        } else {
-            $qrHtml = $svg;
-        }
-    }
-}
+$qrHtml = app_qr_svg($url, 10, 4, 'M');
 if ($qrHtml === '') {
-    // Fallback image endpoint
-    $qrHtml = '<img src="' . htmlspecialchars('qr-image.php?details=' . urlencode($url), ENT_QUOTES, 'UTF-8') . '" width="220" height="220" alt="QR Code" />';
+    // Reliable external fallback (always scannable)
+    $qrHtml = '<img src="' . htmlspecialchars(
+        'https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=12&ecc=M&data=' . rawurlencode($url),
+        ENT_QUOTES,
+        'UTF-8'
+    ) . '" width="280" height="280" alt="QR Code" />';
 }
 ?>
     <h3>QR Code for <?php echo htmlspecialchars($ownerName); ?></h3>
@@ -145,8 +135,8 @@ if ($qrHtml === '') {
             <a href="view-laptops.php">Back</a>
         </p>
         <p class="no-print" style="font-size:12px;color:#666;max-width:320px;margin:8px auto;">
-            After scanning, choose In/Out and submit. You should see:
-            <em>“A log for … whose the owner is … is recorded successfully! Status: …”</em>
+            Tip: hold the phone steady, fill the camera with the code. After scan → choose Check-In/Out → Commit →
+            you should see <em>“A log for … is recorded successfully!”</em>
         </p>
     </div>
 </body>
