@@ -1,6 +1,7 @@
 <?php
 /**
- * Generate a QR code PNG from ?details=...
+ * Generate a QR code image from ?details=...
+ * PNG when GD is available; SVG otherwise (Vercel-safe).
  */
 error_reporting(E_ALL);
 ini_set('display_errors', '0');
@@ -13,10 +14,8 @@ if ($details === '') {
     exit;
 }
 
-// Load TCPDF 2D barcode class reliably
 $barcodeClass = dirname(__FILE__) . '/../../tcpdf_barcodes_2d.php';
 if (!file_exists($barcodeClass)) {
-    // Fallback absolute from htdocs QR root
     $barcodeClass = dirname(__FILE__) . '/../../../tcpdf/tcpdf_barcodes_2d.php';
 }
 if (!file_exists($barcodeClass)) {
@@ -34,12 +33,17 @@ if (!class_exists('TCPDF2DBarcode')) {
     exit;
 }
 
-if (!function_exists('imagepng')) {
-    http_response_code(500);
-    header('Content-Type: text/plain');
-    echo 'PHP GD extension is required to render QR PNG images. Enable extension=gd in php.ini and restart Apache.';
+$barcodeobj = new TCPDF2DBarcode($details, 'QRCODE,H');
+
+while (ob_get_level() > 0) {
+    ob_end_clean();
+}
+
+if (function_exists('imagepng')) {
+    $barcodeobj->getBarcodePNG(6, 6, array(0, 0, 0));
     exit;
 }
 
-$barcodeobj = new TCPDF2DBarcode($details, 'QRCODE,H');
-$barcodeobj->getBarcodePNG(6, 6, array(0, 0, 0));
+header('Content-Type: image/svg+xml; charset=UTF-8');
+echo $barcodeobj->getBarcodeSVGcode(6, 6, 'black');
+exit;
