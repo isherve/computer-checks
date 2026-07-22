@@ -22,7 +22,16 @@ $isAdmin = ($user_type === 'Admin');
 // Recent logs for on-page preview
 $recent = app_build_report($pdo, ['period' => 'all']);
 $recentFlat = app_report_flat_rows($recent);
-$preview = array_slice($recentFlat, 0, 15);
+$preview = array_slice($recentFlat, 0, 20);
+
+// All rows that have a real comment
+$commentsStmt = $pdo->query(
+    "SELECT sn, model, type, owno, owname, action, comment, date
+     FROM logs
+     WHERE comment IS NOT NULL AND TRIM(comment) != ''
+     ORDER BY date DESC"
+);
+$commentRows = $commentsStmt ? $commentsStmt->fetchAll(PDO::FETCH_ASSOC) : [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -176,7 +185,29 @@ $preview = array_slice($recentFlat, 0, 15);
             min-width: 120px;
         }
         .stat b { display: block; font-size: 1.4rem; color: var(--teal); }
-        .stat span { font-size: 0.8rem; color: #64748b; }
+        table.logs-table td.comment-cell {
+            min-width: 160px;
+            max-width: 280px;
+            white-space: normal;
+            word-break: break-word;
+            font-weight: 600;
+            color: #0d7377;
+        }
+        table.logs-table td.comment-empty {
+            color: #94a3b8;
+            font-weight: 400;
+            font-style: italic;
+        }
+        .comment-card {
+            border: 1px solid var(--line);
+            border-left: 4px solid var(--teal);
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            background: #f8fffe;
+        }
+        .comment-card .meta { font-size: 0.8rem; color: #64748b; margin-bottom: 4px; }
+        .comment-card .text { font-size: 1rem; font-weight: 600; color: var(--ink); }
     </style>
     <script>
         function updateFormFields() {
@@ -319,10 +350,36 @@ $preview = array_slice($recentFlat, 0, 15);
                 <span>Check-ins (in list)</span>
             </div>
             <div class="stat">
-                <b><?php echo count(array_filter($recentFlat, function ($r) { return ($r[6] ?? '') === 'check-out'; })); ?></b>
-                <span>Check-outs (in list)</span>
+                <b><?php echo count($commentRows); ?></b>
+                <span>With comments</span>
             </div>
         </div>
+
+        <section class="panel">
+            <h4>All comments entered <small class="text-muted">(<?php echo count($commentRows); ?>)</small></h4>
+            <?php if (count($commentRows) === 0): ?>
+                <p class="text-muted mb-0">No comments yet. When you scan a QR and type in the Comment field before Commit, it will show here.</p>
+            <?php else: ?>
+                <div class="actions mb-3">
+                    <a class="btn btn-teal btn-sm" href="generate_report.php?period=all&amp;comments_only=1"><i class="fa fa-eye"></i> View all with comments</a>
+                    <a class="btn btn-danger btn-sm" href="generate_report.php?period=all&amp;comments_only=1&amp;format=pdf"><i class="fa fa-file-pdf"></i> PDF (comments)</a>
+                    <a class="btn btn-success btn-sm" href="generate_report.php?period=all&amp;comments_only=1&amp;format=csv"><i class="fa fa-download"></i> CSV (comments)</a>
+                </div>
+                <?php foreach ($commentRows as $cr): ?>
+                    <div class="comment-card">
+                        <div class="meta">
+                            <?php echo htmlspecialchars($cr['date']); ?> ·
+                            <?php echo htmlspecialchars($cr['owname']); ?> ·
+                            <?php echo htmlspecialchars($cr['sn']); ?> ·
+                            <span class="badge <?php echo $cr['action'] === 'check-in' ? 'badge-in' : 'badge-out'; ?>">
+                                <?php echo htmlspecialchars($cr['action']); ?>
+                            </span>
+                        </div>
+                        <div class="text"><?php echo htmlspecialchars($cr['comment']); ?></div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </section>
 
         <div class="grid">
             <section class="panel">
@@ -445,16 +502,21 @@ $preview = array_slice($recentFlat, 0, 15);
                         <?php foreach ($preview as $row): ?>
                             <tr>
                                 <?php foreach ($row as $idx => $cell): ?>
-                                    <td>
-                                        <?php if ($idx === 6): ?>
+                                    <?php if ($idx === 6): ?>
+                                        <td>
                                             <?php $act = (string)$cell; ?>
                                             <span class="badge <?php echo $act === 'check-in' ? 'badge-in' : 'badge-out'; ?>">
                                                 <?php echo htmlspecialchars($act); ?>
                                             </span>
-                                        <?php else: ?>
-                                            <?php echo htmlspecialchars((string)$cell); ?>
-                                        <?php endif; ?>
-                                    </td>
+                                        </td>
+                                    <?php elseif ($idx === 8): ?>
+                                        <?php $cmt = trim((string)$cell); ?>
+                                        <td class="<?php echo $cmt === '' ? 'comment-empty' : 'comment-cell'; ?>">
+                                            <?php echo $cmt === '' ? '—' : htmlspecialchars($cmt); ?>
+                                        </td>
+                                    <?php else: ?>
+                                        <td><?php echo htmlspecialchars((string)$cell); ?></td>
+                                    <?php endif; ?>
                                 <?php endforeach; ?>
                             </tr>
                         <?php endforeach; ?>

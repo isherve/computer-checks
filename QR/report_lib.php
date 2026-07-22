@@ -31,8 +31,16 @@ if (!function_exists('app_build_report')) {
         $columns = [];
 
         if ($period === 'all' || $period === '') {
-            $query = 'SELECT log_id, sn, model, type, owno, owname, action, comment, date FROM logs ORDER BY date DESC LIMIT 500';
-            $title = 'All Gate Logs (latest 500)';
+            $commentsOnly = !empty($get['comments_only']);
+            if ($commentsOnly) {
+                $query = "SELECT log_id, sn, model, type, owno, owname, action, comment, date FROM logs
+                          WHERE comment IS NOT NULL AND TRIM(comment) != ''
+                          ORDER BY date DESC LIMIT 500";
+                $title = 'Gate Logs with Comments';
+            } else {
+                $query = 'SELECT log_id, sn, model, type, owno, owname, action, comment, date FROM logs ORDER BY date DESC LIMIT 500';
+                $title = 'All Gate Logs (latest 500)';
+            }
             $overall = true;
             $columns = ['No', 'Serial Number', 'Model', 'Owner Type', 'Owner ID', 'Owner Name', 'Status', 'Check Time', 'Comment'];
         } elseif ($overall) {

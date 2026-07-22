@@ -23,6 +23,7 @@ $stmt->execute([$serialNumber, $model, $type, $ownerNumber, $ownerName, $action,
 $sn = htmlspecialchars($serialNumber, ENT_QUOTES, 'UTF-8');
 $name = htmlspecialchars($ownerName, ENT_QUOTES, 'UTF-8');
 $status = htmlspecialchars($action, ENT_QUOTES, 'UTF-8');
+$commentSafe = htmlspecialchars(trim($comment), ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -48,6 +49,15 @@ $status = htmlspecialchars($action, ENT_QUOTES, 'UTF-8');
             color: #000;
             font-weight: 800;
         }
+        .comment-box {
+            margin-top: 18px;
+            padding: 12px 14px;
+            border-left: 4px solid teal;
+            background: #f3fbfb;
+            font-size: 1.1rem;
+            color: #222;
+            max-width: 640px;
+        }
         .ok {
             margin-top: 28px;
             display: inline-block;
@@ -57,6 +67,7 @@ $status = htmlspecialchars($action, ENT_QUOTES, 'UTF-8');
             text-decoration: none;
             border-radius: 8px;
             font-size: 16px;
+            margin-right: 8px;
         }
     </style>
 </head>
@@ -67,6 +78,10 @@ $status = htmlspecialchars($action, ENT_QUOTES, 'UTF-8');
         is recorded successfully!
         Status: <span class="hl"><?php echo $status; ?></span>
     </div>
+    <?php if ($commentSafe !== ''): ?>
+        <div class="comment-box"><strong>Comment:</strong> <?php echo $commentSafe; ?></div>
+    <?php endif; ?>
     <a class="ok" href="javascript:history.back()">Back</a>
+    <a class="ok" href="report.php" style="background:#343a40;">View Logs</a>
 </body>
 </html>
