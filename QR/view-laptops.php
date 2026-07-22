@@ -174,6 +174,18 @@ $email = $user['names'];
         </a>
       </li>
       <li class="nav-item">
+        <a class="nav-link" href="report.php">
+          <i class="fa fa-book" aria-hidden="true"></i>
+          Logs
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="change-password.php">
+          <i class="fa fa-pencil" aria-hidden="true"></i>
+          Change Password
+        </a>
+      </li>
+      <li class="nav-item">
         <a class="nav-link" href="logout.php">
           <i class="fa fa-sign-out" aria-hidden="true"></i>
           Logout

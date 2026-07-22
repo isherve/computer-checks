@@ -211,7 +211,7 @@ $email = $user['names'];
       <li class="nav-item">
         <a class="nav-link" href="report.php">
           <i class="fa fa-book" aria-hidden="true"></i>
-          Reports
+          Logs
         </a>
       </li>
       <li class="nav-item">

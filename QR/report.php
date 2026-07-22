@@ -8,6 +8,7 @@ if (!isset($_SESSION['user_type'])) {
 }
 
 require_once 'connection.php';
+require_once 'report_lib.php';
 
 $user_type = $_SESSION['user_type'];
 $email = $_SESSION['email'];
@@ -16,39 +17,166 @@ $stmt->execute([$user_type, $email]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 $displayName = $user['names'] ?? $email;
 $dash = ($user_type === 'Admin') ? 'admin-dashboard.php' : 'user-dashboard.php';
+$isAdmin = ($user_type === 'Admin');
+
+// Recent logs for on-page preview
+$recent = app_build_report($pdo, ['period' => 'all']);
+$recentFlat = app_report_flat_rows($recent);
+$preview = array_slice($recentFlat, 0, 15);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Computer Checks | Reports</title>
+    <title>Computer Checks | Logs</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="icons/css/all.css">
     <style>
-        body { font-family: Poppins, Arial, sans-serif; background: #f4f6f8; margin: 0; }
-        header {
-            background: #343a40; color: #fff; padding: 12px 20px;
-            position: sticky; top: 0; z-index: 10;
+        :root {
+            --ink: #1a2332;
+            --teal: #0d7377;
+            --teal-dark: #095c5f;
+            --line: #e2e8f0;
+            --bg: #f0f4f7;
+            --card: #ffffff;
         }
-        header h1 { font-size: 1.25rem; margin: 0; }
-        header h5 { margin: 4px 0 0; font-weight: normal; opacity: .9; }
-        .layout { display: flex; min-height: calc(100vh - 70px); }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Poppins, "Segoe UI", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+        }
+        header.app-header {
+            background: #343a40;
+            color: #fff;
+            padding: 14px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        header.app-header .logo {
+            max-width: 72px;
+            border-radius: 50%;
+        }
+        header.app-header h1 {
+            font-size: 1.35rem;
+            margin: 0;
+        }
+        header.app-header h5 {
+            margin: 2px 0 0;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+        .shell {
+            display: flex;
+            min-height: calc(100vh - 76px);
+        }
         .sidebar {
-            width: 210px; background: #fff; padding: 20px 12px;
-            border-right: 1px solid #e5e5e5; flex-shrink: 0;
+            width: 220px;
+            background: #f8f9fa;
+            padding: 28px 12px;
+            border-right: 1px solid var(--line);
+            flex-shrink: 0;
         }
-        .content { flex: 1; padding: 24px; max-width: 720px; }
+        .sidebar .nav-link {
+            color: #3498db;
+            font-weight: 600;
+            padding: 10px 12px;
+            border-radius: 6px;
+        }
+        .sidebar .nav-link i { color: #111; margin-right: 8px; width: 18px; }
+        .sidebar .nav-link.active,
+        .sidebar .nav-link:hover {
+            background: #e8eef3;
+        }
+        .main {
+            flex: 1;
+            padding: 24px 28px 40px;
+            max-width: 1100px;
+        }
+        .page-title {
+            color: var(--teal);
+            font-weight: 700;
+            margin: 0 0 6px;
+        }
+        .page-sub {
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 960px) {
+            .shell { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--line); }
+            .grid { grid-template-columns: 1fr; }
+        }
         .panel {
-            background: #fff; border-radius: 8px; padding: 20px;
-            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 18px 20px;
         }
-        .quick a { margin-right: 8px; margin-bottom: 8px; }
-        .form-group label { font-weight: 600; }
-        @media (max-width: 768px) {
-            .layout { flex-direction: column; }
-            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #e5e5e5; }
+        .panel h4 {
+            margin: 0 0 12px;
+            font-size: 1.05rem;
+            color: var(--ink);
         }
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .btn-teal {
+            background: var(--teal);
+            border-color: var(--teal);
+            color: #fff;
+        }
+        .btn-teal:hover {
+            background: var(--teal-dark);
+            border-color: var(--teal-dark);
+            color: #fff;
+        }
+        .form-group label { font-weight: 600; font-size: 0.9rem; }
+        .table-wrap {
+            overflow-x: auto;
+        }
+        table.logs-table {
+            width: 100%;
+            font-size: 0.88rem;
+            margin: 0;
+        }
+        table.logs-table thead th {
+            background: #343a40;
+            color: #fff;
+            border: none;
+            white-space: nowrap;
+        }
+        .badge-in { background: #0d7377; }
+        .badge-out { background: #c0392b; }
+        .stat-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .stat {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px 16px;
+            min-width: 120px;
+        }
+        .stat b { display: block; font-size: 1.4rem; color: var(--teal); }
+        .stat span { font-size: 0.8rem; color: #64748b; }
     </style>
     <script>
         function updateFormFields() {
@@ -73,10 +201,8 @@ $dash = ($user_type === 'Admin') ? 'admin-dashboard.php' : 'user-dashboard.php';
                 document.getElementById('date-fields').style.display = 'block';
                 document.getElementById('action-wrap').style.display = 'block';
             }
-            // overall hides action filter
             toggleOverall();
         }
-
         function toggleOverall() {
             var overall = document.getElementById('overall').checked;
             var period = document.getElementById('period').value;
@@ -86,11 +212,10 @@ $dash = ($user_type === 'Admin') ? 'admin-dashboard.php' : 'user-dashboard.php';
                 document.getElementById('action-wrap').style.display = 'block';
             }
         }
-
         function buildUrl(format) {
             var period = document.getElementById('period').value;
             if (!period || period === '#') {
-                alert('Please select a period (or use View all logs).');
+                alert('Please select a period, or use View / Download all logs.');
                 return null;
             }
             var params = new URLSearchParams();
@@ -112,18 +237,11 @@ $dash = ($user_type === 'Admin') ? 'admin-dashboard.php' : 'user-dashboard.php';
                 params.set('start_date', document.getElementById('start-date').value);
                 params.set('end_date', document.getElementById('end-date').value);
             }
-            if (period === 'monthly') {
-                params.set('month', document.getElementById('month').value);
-            }
-            if (period === 'annual') {
-                params.set('year', document.getElementById('year').value);
-            }
-            if (period === 'individual') {
-                params.set('sn', document.getElementById('sn').value);
-            }
+            if (period === 'monthly') params.set('month', document.getElementById('month').value);
+            if (period === 'annual') params.set('year', document.getElementById('year').value);
+            if (period === 'individual') params.set('sn', document.getElementById('sn').value);
             return 'generate_report.php?' + params.toString();
         }
-
         function viewReport() {
             var url = buildUrl('html');
             if (url) window.location.href = url;
@@ -139,141 +257,212 @@ $dash = ($user_type === 'Admin') ? 'admin-dashboard.php' : 'user-dashboard.php';
     </script>
 </head>
 <body>
-<header>
-    <h1><?php echo htmlspecialchars($user_type); ?> | Reports</h1>
-    <h5>Welcome, <?php echo htmlspecialchars($displayName); ?> — Computer Checks</h5>
+<header class="app-header">
+    <img src="img/QR-logo.JPG" alt="Logo" class="logo">
+    <div>
+        <h1><?php echo htmlspecialchars($user_type); ?> | Logs</h1>
+        <h5>Welcome, <?php echo htmlspecialchars($displayName); ?> — Computer Checks · UTBrubavu</h5>
+    </div>
 </header>
-<div class="layout">
+
+<div class="shell">
     <aside class="sidebar">
-        <h5>Menu</h5>
-        <ul class="nav flex-column">
-            <li class="nav-item"><a class="nav-link" href="<?php echo htmlspecialchars($dash); ?>"><i class="fa fa-home"></i> Dashboard</a></li>
-            <?php if ($user_type !== 'Admin'): ?>
-            <li class="nav-item"><a class="nav-link" href="view-laptops.php"><i class="fa fa-eye"></i> View Laptops</a></li>
-            <?php endif; ?>
-            <li class="nav-item"><a class="nav-link active" href="report.php"><i class="fa fa-book"></i> Reports</a></li>
-            <li class="nav-item"><a class="nav-link" href="logout.php"><i class="fa fa-sign-out"></i> Logout</a></li>
-        </ul>
+        <nav>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="<?php echo htmlspecialchars($dash); ?>"><i class="fa fa-home"></i> Dashboard</a>
+                </li>
+                <?php if (!$isAdmin): ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="view-laptops.php"><i class="fa fa-eye"></i> View Laptops</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="record-computers.php"><i class="fa fa-plus-circle"></i> Record New Laptop</a>
+                </li>
+                <?php else: ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="view-users.php"><i class="fa fa-eye"></i> View Users</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="add-users.php"><i class="fa fa-plus-circle"></i> Add new user</a>
+                </li>
+                <?php endif; ?>
+                <li class="nav-item">
+                    <a class="nav-link active" href="report.php"><i class="fa fa-book"></i> Logs</a>
+                </li>
+                <?php if (!$isAdmin): ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="change-password.php"><i class="fa fa-pencil"></i> Change Password</a>
+                </li>
+                <?php endif; ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="logout.php"><i class="fa fa-sign-out"></i> Logout</a>
+                </li>
+            </ul>
+        </nav>
     </aside>
-    <main class="content">
-        <div class="panel mb-3">
-            <h4>Quick view</h4>
-            <p class="text-muted mb-2">See recent gate activity or download it immediately.</p>
-            <div class="quick">
-                <a class="btn btn-primary" href="generate_report.php?period=all">
-                    <i class="fa fa-eye"></i> View all logs
-                </a>
-                <a class="btn btn-danger" href="generate_report.php?period=all&amp;format=pdf">
-                    <i class="fa fa-file-pdf"></i> Download all (PDF)
-                </a>
-                <a class="btn btn-success" href="generate_report.php?period=all&amp;format=csv">
-                    <i class="fa fa-download"></i> Download all (CSV)
-                </a>
+
+    <main class="main">
+        <h2 class="page-title">Gate Logs</h2>
+        <p class="page-sub">View check-in / check-out activity, then download as PDF or CSV.</p>
+
+        <div class="stat-row">
+            <div class="stat">
+                <b><?php echo count($recentFlat); ?></b>
+                <span>Recent log rows</span>
+            </div>
+            <div class="stat">
+                <b><?php echo count(array_filter($recentFlat, function ($r) { return ($r[6] ?? '') === 'check-in'; })); ?></b>
+                <span>Check-ins (in list)</span>
+            </div>
+            <div class="stat">
+                <b><?php echo count(array_filter($recentFlat, function ($r) { return ($r[6] ?? '') === 'check-out'; })); ?></b>
+                <span>Check-outs (in list)</span>
             </div>
         </div>
 
-        <div class="panel">
-            <h4>Custom report</h4>
-            <form onsubmit="return false;">
-                <div class="form-group">
-                    <div class="custom-control custom-checkbox">
-                        <input type="checkbox" class="custom-control-input" id="overall" onchange="toggleOverall()">
-                        <label class="custom-control-label" for="overall">Overall (check-in + check-out together)</label>
-                    </div>
+        <div class="grid">
+            <section class="panel">
+                <h4>Quick actions</h4>
+                <div class="actions mb-3">
+                    <a class="btn btn-teal" href="generate_report.php?period=all"><i class="fa fa-eye"></i> View all logs</a>
+                    <a class="btn btn-danger" href="generate_report.php?period=all&amp;format=pdf"><i class="fa fa-file-pdf"></i> Download PDF</a>
+                    <a class="btn btn-success" href="generate_report.php?period=all&amp;format=csv"><i class="fa fa-download"></i> Download CSV</a>
                 </div>
+                <p class="text-muted mb-0" style="font-size:0.85rem;">Opens the full log list (up to 500 newest records) or downloads it immediately.</p>
+            </section>
 
-                <div class="form-group" id="action-wrap">
-                    <label for="action">Report type</label>
-                    <select class="form-control" id="action">
-                        <option value="check-in">Computers Checked In</option>
-                        <option value="check-out">Computers Checked Out</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="period">Period</label>
-                    <select class="form-control" id="period" onchange="updateFormFields()">
-                        <option value="#">Select period</option>
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="annual">Annual</option>
-                        <option value="individual">Individual (by serial)</option>
-                    </select>
-                </div>
-
-                <div class="form-group" id="date-fields" style="display:none;">
-                    <label for="date">Date</label>
-                    <input type="date" class="form-control mb-2" id="date">
-                    <label>Start time</label>
-                    <div class="form-row">
-                        <div class="col">
-                            <select class="form-control" id="start-hour">
-                                <?php for ($i = 0; $i < 24; $i++): ?>
-                                    <option value="<?php echo $i; ?>"><?php echo str_pad((string)$i, 2, '0', STR_PAD_LEFT); ?></option>
-                                <?php endfor; ?>
-                            </select>
-                        </div>
-                        <div class="col">
-                            <select class="form-control" id="start-minute">
-                                <?php for ($i = 0; $i < 60; $i += 5): ?>
-                                    <option value="<?php echo $i; ?>"><?php echo str_pad((string)$i, 2, '0', STR_PAD_LEFT); ?></option>
-                                <?php endfor; ?>
-                            </select>
+            <section class="panel">
+                <h4>Filter logs</h4>
+                <form onsubmit="return false;">
+                    <div class="form-group mb-2">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="overall" onchange="toggleOverall()">
+                            <label class="custom-control-label" for="overall">Overall (in + out)</label>
                         </div>
                     </div>
-                    <label class="mt-2">End time</label>
-                    <div class="form-row">
-                        <div class="col">
-                            <select class="form-control" id="end-hour">
-                                <?php for ($i = 0; $i < 24; $i++): ?>
-                                    <option value="<?php echo $i; ?>" <?php echo $i === 23 ? 'selected' : ''; ?>><?php echo str_pad((string)$i, 2, '0', STR_PAD_LEFT); ?></option>
-                                <?php endfor; ?>
-                            </select>
+                    <div class="form-group" id="action-wrap">
+                        <label for="action">Type</label>
+                        <select class="form-control form-control-sm" id="action">
+                            <option value="check-in">Check-In</option>
+                            <option value="check-out">Check-Out</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="period">Period</label>
+                        <select class="form-control form-control-sm" id="period" onchange="updateFormFields()">
+                            <option value="#">Select period</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="annual">Annual</option>
+                            <option value="individual">By serial number</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="date-fields" style="display:none;">
+                        <label for="date">Date</label>
+                        <input type="date" class="form-control form-control-sm mb-2" id="date">
+                        <label>Start</label>
+                        <div class="form-row mb-2">
+                            <div class="col">
+                                <select class="form-control form-control-sm" id="start-hour">
+                                    <?php for ($i = 0; $i < 24; $i++): ?>
+                                        <option value="<?php echo $i; ?>"><?php echo str_pad((string)$i, 2, '0', STR_PAD_LEFT); ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <select class="form-control form-control-sm" id="start-minute">
+                                    <?php for ($i = 0; $i < 60; $i += 5): ?>
+                                        <option value="<?php echo $i; ?>"><?php echo str_pad((string)$i, 2, '0', STR_PAD_LEFT); ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                            </div>
                         </div>
-                        <div class="col">
-                            <select class="form-control" id="end-minute">
-                                <?php for ($i = 0; $i < 60; $i += 5): ?>
-                                    <option value="<?php echo $i; ?>" <?php echo $i === 55 ? 'selected' : ''; ?>><?php echo str_pad((string)$i, 2, '0', STR_PAD_LEFT); ?></option>
-                                <?php endfor; ?>
-                            </select>
+                        <label>End</label>
+                        <div class="form-row">
+                            <div class="col">
+                                <select class="form-control form-control-sm" id="end-hour">
+                                    <?php for ($i = 0; $i < 24; $i++): ?>
+                                        <option value="<?php echo $i; ?>" <?php echo $i === 23 ? 'selected' : ''; ?>><?php echo str_pad((string)$i, 2, '0', STR_PAD_LEFT); ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <select class="form-control form-control-sm" id="end-minute">
+                                    <?php for ($i = 0; $i < 60; $i += 5): ?>
+                                        <option value="<?php echo $i; ?>" <?php echo $i === 55 ? 'selected' : ''; ?>><?php echo str_pad((string)$i, 2, '0', STR_PAD_LEFT); ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="form-group" id="week-fields" style="display:none;">
-                    <label for="start-date">Start date</label>
-                    <input type="date" class="form-control mb-2" id="start-date">
-                    <label for="end-date">End date</label>
-                    <input type="date" class="form-control" id="end-date">
-                </div>
-
-                <div class="form-group" id="month-field" style="display:none;">
-                    <label for="month">Month</label>
-                    <input type="month" class="form-control" id="month">
-                </div>
-
-                <div class="form-group" id="year-field" style="display:none;">
-                    <label for="year">Year</label>
-                    <input type="number" class="form-control" id="year" min="2020" max="2100" value="<?php echo date('Y'); ?>">
-                </div>
-
-                <div class="form-group" id="sn-field" style="display:none;">
-                    <label for="sn">Serial number</label>
-                    <input type="text" class="form-control" id="sn" placeholder="e.g. PF4L50WX">
-                </div>
-
-                <button type="button" class="btn btn-primary" onclick="viewReport()">
-                    <i class="fa fa-eye"></i> View report
-                </button>
-                <button type="button" class="btn btn-danger" onclick="downloadPdf()">
-                    <i class="fa fa-file-pdf"></i> Download PDF
-                </button>
-                <button type="button" class="btn btn-success" onclick="downloadReport()">
-                    <i class="fa fa-download"></i> Download CSV
-                </button>
-            </form>
+                    <div class="form-group" id="week-fields" style="display:none;">
+                        <label for="start-date">Start date</label>
+                        <input type="date" class="form-control form-control-sm mb-2" id="start-date">
+                        <label for="end-date">End date</label>
+                        <input type="date" class="form-control form-control-sm" id="end-date">
+                    </div>
+                    <div class="form-group" id="month-field" style="display:none;">
+                        <label for="month">Month</label>
+                        <input type="month" class="form-control form-control-sm" id="month">
+                    </div>
+                    <div class="form-group" id="year-field" style="display:none;">
+                        <label for="year">Year</label>
+                        <input type="number" class="form-control form-control-sm" id="year" min="2020" max="2100" value="<?php echo date('Y'); ?>">
+                    </div>
+                    <div class="form-group" id="sn-field" style="display:none;">
+                        <label for="sn">Serial number</label>
+                        <input type="text" class="form-control form-control-sm" id="sn" placeholder="e.g. PF4L50WX">
+                    </div>
+                    <div class="actions">
+                        <button type="button" class="btn btn-sm btn-teal" onclick="viewReport()"><i class="fa fa-eye"></i> View</button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="downloadPdf()"><i class="fa fa-file-pdf"></i> PDF</button>
+                        <button type="button" class="btn btn-sm btn-success" onclick="downloadReport()"><i class="fa fa-download"></i> CSV</button>
+                    </div>
+                </form>
+            </section>
         </div>
+
+        <section class="panel">
+            <h4>Latest activity <small class="text-muted">(showing <?php echo count($preview); ?> of <?php echo count($recentFlat); ?>)</small></h4>
+            <div class="table-wrap">
+                <table class="table table-bordered table-sm logs-table">
+                    <thead>
+                        <tr>
+                            <?php foreach ($recent['columns'] as $col): ?>
+                                <th><?php echo htmlspecialchars($col); ?></th>
+                            <?php endforeach; ?>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php if (count($preview) === 0): ?>
+                        <tr><td colspan="<?php echo count($recent['columns']); ?>" class="text-center text-muted">No logs yet. Scan a QR and submit a gate log.</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($preview as $row): ?>
+                            <tr>
+                                <?php foreach ($row as $idx => $cell): ?>
+                                    <td>
+                                        <?php if ($idx === 6): ?>
+                                            <?php $act = (string)$cell; ?>
+                                            <span class="badge <?php echo $act === 'check-in' ? 'badge-in' : 'badge-out'; ?>">
+                                                <?php echo htmlspecialchars($act); ?>
+                                            </span>
+                                        <?php else: ?>
+                                            <?php echo htmlspecialchars((string)$cell); ?>
+                                        <?php endif; ?>
+                                    </td>
+                                <?php endforeach; ?>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+            <div class="actions mt-3">
+                <a class="btn btn-teal btn-sm" href="generate_report.php?period=all">See full log table</a>
+            </div>
+        </section>
     </main>
 </div>
 </body>
