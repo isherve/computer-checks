@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 // Error reporting settings
 error_reporting(0); // Disable all error reporting
