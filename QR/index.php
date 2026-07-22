@@ -62,7 +62,7 @@
 </div>
 
 <div class="footer">
-    <p>&copy; iprc kigali Computer Checks. All rights reserved.</p>
+    <p>&copy; UTBrubavu Computer Checks. All rights reserved.</p>
 </div>
 
 <!-- Bootstrap JS and dependencies -->

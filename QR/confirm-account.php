@@ -65,7 +65,7 @@
 <!-- Header -->
 <div class="header">
   <h1><img src="img/QR-logo.jpg" alt="Logo" class="logo img-fluid col-md-4  image-container">Computer Checks</h1>
-  <p style="text-align:center;">IPRC Kigali</p>
+  <p style="text-align:center;">UTBrubavu</p>
 </div>
 
 <!-- Content -->
@@ -93,7 +93,7 @@
     </div>
   </div>
 </div>
-<footer>&COPY;rights reserved to iprc kigali</footer>
+<footer>&COPY;rights reserved to UTBrubavu</footer>
 <!-- Bootstrap JS and dependencies -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
