@@ -7,6 +7,10 @@ declare(strict_types=1);
 // Buffer all output so accidental BOM/whitespace cannot break session_start()/header()
 ob_start();
 
+// Hide PHP 8 deprecations from library code (TCPDF) on the public site
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
+ini_set('display_errors', '0');
+
 $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 $uri = $uri === null ? '/' : $uri;
 $uri = rawurldecode($uri);
