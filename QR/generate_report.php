@@ -54,64 +54,37 @@ if ($format === 'csv') {
     exit;
 }
 
-// ----- PDF download (TCPDF) -----
+// ----- PDF download (lightweight writer – works on Vercel) -----
 if ($format === 'pdf') {
     while (ob_get_level() > 0) {
         ob_end_clean();
     }
 
-    require_once __DIR__ . '/tcpdf/tcpdf.php';
+    require_once __DIR__ . '/simple_pdf.php';
 
-    $landscape = count($report['columns']) > 6;
-    $pdf = new TCPDF($landscape ? 'L' : 'P', 'mm', 'A4', true, 'UTF-8', false);
-    $pdf->SetCreator('Computer Checks');
-    $pdf->SetAuthor('UTBrubavu');
-    $pdf->SetTitle($title);
-    $pdf->setPrintHeader(false);
-    $pdf->setPrintFooter(true);
-    $pdf->SetFooterMargin(12);
-    $pdf->SetMargins(10, 14, 10);
-    $pdf->SetAutoPageBreak(true, 16);
-    $pdf->SetFont('helvetica', '', 9);
-    $pdf->AddPage();
-
-    $safe = static function ($v): string {
-        return htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    };
-
-    $html = '<h2 style="text-align:center;color:#008080;">Computer Checks — UTBrubavu</h2>';
-    $html .= '<h3 style="text-align:center;">' . $safe($title) . '</h3>';
-    $html .= '<p style="font-size:9px;color:#555;">Generated: ' . $safe(date('Y-m-d H:i:s'))
-        . ' &nbsp;|&nbsp; By: ' . $safe($displayName)
-        . ' &nbsp;|&nbsp; Records: ' . count($flat) . '</p>';
-
-    $html .= '<table border="1" cellpadding="3" cellspacing="0" width="100%">';
-    $html .= '<thead><tr style="background-color:#343a40;color:#ffffff;font-weight:bold;">';
-    foreach ($report['columns'] as $col) {
-        $html .= '<th>' . $safe($col) . '</th>';
+    try {
+        $landscape = count($report['columns']) > 6;
+        $pdf = new SimpleReportPdf($landscape);
+        $pdf->setTitle($title);
+        $pdf->heading('Computer Checks - UTBrubavu', 14);
+        $pdf->heading($title, 11);
+        $pdf->line(
+            'Generated: ' . date('Y-m-d H:i:s') .
+            ' | By: ' . $displayName .
+            ' | Records: ' . count($flat),
+            8
+        );
+        $pdf->line('');
+        $pdf->table($report['columns'], $flat, $landscape ? 7 : 8);
+        $pdf->line('');
+        $pdf->line('UTBrubavu Computer Checks', 8);
+        $filename = 'computer-checks-report-' . date('Ymd-His') . '.pdf';
+        $pdf->outputDownload($filename);
+    } catch (Throwable $e) {
+        http_response_code(500);
+        header('Content-Type: text/plain; charset=UTF-8');
+        echo 'PDF generation failed: ' . $e->getMessage();
     }
-    $html .= '</tr></thead><tbody>';
-
-    if (count($flat) === 0) {
-        $html .= '<tr><td colspan="' . count($report['columns']) . '" align="center">No records found</td></tr>';
-    } else {
-        $i = 0;
-        foreach ($flat as $row) {
-            $bg = ($i % 2 === 0) ? '#ffffff' : '#f2f2f2';
-            $html .= '<tr style="background-color:' . $bg . ';">';
-            foreach ($row as $cell) {
-                $html .= '<td>' . $safe($cell) . '</td>';
-            }
-            $html .= '</tr>';
-            $i++;
-        }
-    }
-    $html .= '</tbody></table>';
-    $html .= '<p style="font-size:8px;color:#777;margin-top:12px;">© UTBrubavu Computer Checks</p>';
-
-    $pdf->writeHTML($html, true, false, true, false, '');
-    $filename = 'computer-checks-report-' . date('Ymd-His') . '.pdf';
-    $pdf->Output($filename, 'D');
     exit;
 }
 
