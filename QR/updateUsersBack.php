@@ -1,50 +1,65 @@
 <?php
-include 'connection.php';
-if (isset($_POST['update'])) {
-    $user_type = $_POST['user_type'];
-    $nid = $_POST['nid'];
-    $names = $_POST['names'];
-    $email = $_POST['email'];
+/**
+ * Handle admin "Edit user" form submit.
+ */
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 
-    try {
-         $query = "UPDATE users SET user_type=:user_type, names=:names, email=:email WHERE nid=:nid ";
-         $statement = $pdo->prepare($query);
+if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'Admin') {
+    header('Location: index.php');
+    exit();
+}
 
-         $data =[
-              ':nid' =>$nid,
-              ':names' =>$names,
-              ':email' =>$email,
-              'user_type' => $user_type
-         ];
+require_once 'connection.php';
 
-         $query_execute = $statement->execute($data);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['update'])) {
+    header('Location: view-users.php');
+    exit();
+}
 
-         if ($query_execute) {
-          
-            ?> 
-             
-              <div class="alert alert-info alert-dismissible fade show d-flex" role="alert">
-                <strong>Data Updated Successfully</strong>
-            
-                 <?php 
-                    header('Location:view-users.php');a
-                 ?>
-            <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
+$user_type = trim((string)($_POST['user_type'] ?? ''));
+$nid = trim((string)($_POST['nid'] ?? ''));
+$names = trim((string)($_POST['names'] ?? ''));
+$email = trim((string)($_POST['email'] ?? ''));
 
-<?php
-        
-       }
-         else {
-              $_SESSION['message'] = "Data Not Updated....";
-              header("Location:update-users.php ");
-              exit(0);
-         }
+$allowedRoles = ['Admin', 'Guest'];
+if ($nid === '' || $names === '' || $email === '' || !in_array($user_type, $allowedRoles, true)) {
+    header('Location: update-users.php?nid=' . urlencode($nid) . '&error=' . urlencode('Please fill all fields with a valid role (Admin or Guest).'));
+    exit();
+}
 
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    header('Location: update-users.php?nid=' . urlencode($nid) . '&error=' . urlencode('Invalid email address.'));
+    exit();
+}
 
-    } catch (PDOException $e) {
-         echo $e->getMessage();
+try {
+    // Ensure email is not used by a different user
+    $check = $pdo->prepare('SELECT nid FROM users WHERE email = :email AND nid <> :nid LIMIT 1');
+    $check->execute([':email' => $email, ':nid' => $nid]);
+    if ($check->fetch()) {
+        header('Location: update-users.php?nid=' . urlencode($nid) . '&error=' . urlencode('That email is already used by another user.'));
+        exit();
     }
-} 
 
-?>
+    $query = 'UPDATE users SET user_type = :user_type, names = :names, email = :email WHERE nid = :nid';
+    $statement = $pdo->prepare($query);
+    $ok = $statement->execute([
+        ':user_type' => $user_type,
+        ':names' => $names,
+        ':email' => $email,
+        ':nid' => $nid,
+    ]);
+
+    if ($ok && $statement->rowCount() >= 0) {
+        header('Location: view-users.php?updated=1');
+        exit();
+    }
+
+    header('Location: update-users.php?nid=' . urlencode($nid) . '&error=' . urlencode('No changes were saved.'));
+    exit();
+} catch (PDOException $e) {
+    header('Location: update-users.php?nid=' . urlencode($nid) . '&error=' . urlencode('Update failed. Please try again.'));
+    exit();
+}

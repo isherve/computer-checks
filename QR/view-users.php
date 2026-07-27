@@ -216,7 +216,10 @@ $email = $user['names'];
   
   
 <div class="record-summary">
-  <div>  <p>Welcome,<span style="color: #3498db;font-family: sans-serif;font-weight: bold; text-align: center;"> <?php echo $email; ?>!</span></p> 
+  <div>  <p>Welcome,<span style="color: #3498db;font-family: sans-serif;font-weight: bold; text-align: center;"> <?php echo $email; ?>!</span></p>
+            <?php if (isset($_GET['updated'])): ?>
+              <div class="alert alert-success">User updated successfully.</div>
+            <?php endif; ?>
             <h5 style="font-family: poppins;color:green;">Users</h5>
 <!--OPEN SEARCH-->
 <div class="form-group">
