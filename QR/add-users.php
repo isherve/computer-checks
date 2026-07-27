@@ -60,8 +60,8 @@ if (isset($_POST['submit'])) {
                 $plainPassword = $customPassword;
             }
         } else {
-            // Default password = NID
-            $plainPassword = $nid;
+            // Default password depends on selected role
+            $plainPassword = $user_type === 'Admin' ? 'admin123' : 'gate@2026';
         }
 
         if (!isset($Error)) {
@@ -79,8 +79,8 @@ if (isset($_POST['submit'])) {
                     $stmt->execute([$user_type, $nid, $names, $email, $hashed]);
 
                     if ($passwordMode === 'default') {
-                        $message = 'User was added successfully! Default password is the NID: ' . $nid;
-                        $defaultPasswordHint = $nid;
+                        $defaultPasswordHint = $user_type === 'Admin' ? 'admin123' : 'gate@2026';
+                        $message = 'User was added successfully! Default password is: ' . $defaultPasswordHint;
                     } else {
                         $message = 'User was added successfully with the custom password you set.';
                     }
@@ -208,7 +208,7 @@ if (isset($_POST['submit'])) {
                 <div class="form-check">
                   <input class="form-check-input" type="radio" name="password_mode" id="pwdDefault" value="default" <?php echo $form['password_mode'] === 'default' ? 'checked' : ''; ?>>
                   <label class="form-check-label" for="pwdDefault">
-                    Use default password <span class="text-muted">(same as NID)</span>
+                    Use default password <span class="text-muted">(Admin: admin123, Gate_Officer: gate@2026)</span>
                   </label>
                 </div>
                 <div class="form-check mb-2">
