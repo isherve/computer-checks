@@ -155,6 +155,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .span:hover{
             color: black;
         }
+        .password-wrap {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .password-wrap input {
+            width: 100%;
+            padding-right: 40px;
+            margin-bottom: 0;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 4px 6px;
+            line-height: 1;
+        }
+        .toggle-password:hover {
+            color: #3498db;
+            background: none;
+        }
     </style>
 </head>
 
@@ -178,7 +204,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="email" id="email" name="email" placeholder="Put the email" required>
 
                 <label for="password">Password:</label>
-                <input type="password" id="password" name="password" placeholder="Put the password" required>
+                <div class="password-wrap">
+                    <input type="password" id="password" name="password" placeholder="Put the password" required>
+                    <button type="button" class="toggle-password" id="togglePassword" aria-label="Show password" title="Show password">
+                        <i class="fa fa-eye" id="togglePasswordIcon"></i>
+                    </button>
+                </div>
 
                 <button type="submit">Login</button>
                 
@@ -194,6 +225,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+(function () {
+    var passwordInput = document.getElementById('password');
+    var toggleBtn = document.getElementById('togglePassword');
+    var toggleIcon = document.getElementById('togglePasswordIcon');
+
+    toggleBtn.addEventListener('click', function () {
+        var show = passwordInput.type === 'password';
+        passwordInput.type = show ? 'text' : 'password';
+        toggleIcon.className = show ? 'fa fa-eye-slash' : 'fa fa-eye';
+        toggleBtn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+        toggleBtn.setAttribute('title', show ? 'Hide password' : 'Show password');
+    });
+})();
+</script>
 
 </body>
 </html>
