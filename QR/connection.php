@@ -190,6 +190,50 @@ if (!function_exists('app_db_persist')) {
     }
 }
 
+if (!function_exists('app_apply_runtime_migrations')) {
+    /**
+     * Apply small data migrations to the live SQLite copy.
+     */
+    function app_apply_runtime_migrations(PDO $pdo): bool
+    {
+        $changed = false;
+
+        $updates = [
+            [
+                'nid' => '21UTB03769',
+                'names' => 'Ahadibash Alice Cecile',
+                'email' => 'ahadibashalicecile@gmail.com',
+            ],
+            [
+                'nid' => '21UTB06834',
+                'names' => 'Hitiyise Mupenzi',
+                'email' => 'hitiyisemupenzi@gmail.com',
+            ],
+        ];
+
+        $select = $pdo->prepare('SELECT names, email FROM users WHERE nid = :nid LIMIT 1');
+        $update = $pdo->prepare('UPDATE users SET names = :names, email = :email WHERE nid = :nid');
+
+        foreach ($updates as $row) {
+            $select->execute([':nid' => $row['nid']]);
+            $current = $select->fetch(PDO::FETCH_ASSOC);
+            if (!$current) {
+                continue;
+            }
+            if (($current['names'] ?? '') !== $row['names'] || ($current['email'] ?? '') !== $row['email']) {
+                $update->execute([
+                    ':names' => $row['names'],
+                    ':email' => $row['email'],
+                    ':nid' => $row['nid'],
+                ]);
+                $changed = true;
+            }
+        }
+
+        return $changed;
+    }
+}
+
 if (!function_exists('app_pdo')) {
     function app_pdo(): PDO
     {
@@ -223,6 +267,9 @@ if (!function_exists('app_pdo')) {
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             ]);
             $pdo->exec('PRAGMA foreign_keys = ON');
+            if (app_apply_runtime_migrations($pdo)) {
+                app_db_persist();
+            }
             return $pdo;
         }
 
