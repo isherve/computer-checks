@@ -141,10 +141,20 @@ if (!function_exists('app_blob_upload_sqlite')) {
     }
 }
 
+if (!function_exists('app_sqlite_seed_version')) {
+    function app_sqlite_seed_version(): string
+    {
+        // Bump this when seed users/data must replace the live /tmp copy on Vercel.
+        return '2026-07-27-users-v3';
+    }
+}
+
 if (!function_exists('app_sqlite_bootstrap')) {
     function app_sqlite_bootstrap(string $seed): string
     {
         $runtime = app_sqlite_runtime_path();
+        $versionMarker = $runtime . '.seed_version';
+        $wantedVersion = app_sqlite_seed_version();
         $loaded = false;
 
         $blobUrl = getenv('BLOB_DATABASE_URL');
@@ -159,12 +169,19 @@ if (!function_exists('app_sqlite_bootstrap')) {
             }
         }
 
-        if (!$loaded) {
-            if (!is_file($runtime) || filesize($runtime) === 0) {
-                if (!@copy($seed, $runtime)) {
-                    return $seed;
-                }
+        $currentVersion = is_file($versionMarker) ? trim((string)@file_get_contents($versionMarker)) : '';
+        $needsReseed = (!$loaded && ($currentVersion !== $wantedVersion || !is_file($runtime) || filesize($runtime) === 0));
+
+        if ($needsReseed) {
+            if (!@copy($seed, $runtime)) {
+                return $seed;
             }
+            @file_put_contents($versionMarker, $wantedVersion);
+        } elseif ($loaded && $currentVersion !== $wantedVersion) {
+            // Keep blob data if present, but mark version so migrations can still run.
+            @file_put_contents($versionMarker, $wantedVersion);
+        } elseif (!$loaded && !is_file($versionMarker) && is_file($runtime)) {
+            @file_put_contents($versionMarker, $wantedVersion);
         }
 
         return $runtime;
@@ -203,30 +220,47 @@ if (!function_exists('app_apply_runtime_migrations')) {
                 'nid' => '21UTB03769',
                 'names' => 'Ahadibash Alice Cecile',
                 'email' => 'ahadibashalicecile@gmail.com',
+                'old_emails' => ['gahozo909@gmail.com'],
             ],
             [
                 'nid' => '21UTB06834',
                 'names' => 'Hitiyise Mupenzi',
                 'email' => 'hitiyisemupenzi@gmail.com',
+                'old_emails' => ['mfitumukizaeric3@gmail.com'],
             ],
         ];
 
-        $select = $pdo->prepare('SELECT names, email FROM users WHERE nid = :nid LIMIT 1');
-        $update = $pdo->prepare('UPDATE users SET names = :names, email = :email WHERE nid = :nid');
+        $selectByNid = $pdo->prepare('SELECT names, email FROM users WHERE nid = :nid LIMIT 1');
+        $selectByEmail = $pdo->prepare('SELECT nid, names, email FROM users WHERE email = :email LIMIT 1');
+        $updateByNid = $pdo->prepare('UPDATE users SET names = :names, email = :email WHERE nid = :nid');
+        $updateByEmail = $pdo->prepare('UPDATE users SET names = :names, email = :email WHERE email = :old_email');
 
         foreach ($updates as $row) {
-            $select->execute([':nid' => $row['nid']]);
-            $current = $select->fetch(PDO::FETCH_ASSOC);
-            if (!$current) {
+            $selectByNid->execute([':nid' => $row['nid']]);
+            $current = $selectByNid->fetch(PDO::FETCH_ASSOC);
+            if ($current) {
+                if (($current['names'] ?? '') !== $row['names'] || ($current['email'] ?? '') !== $row['email']) {
+                    $updateByNid->execute([
+                        ':names' => $row['names'],
+                        ':email' => $row['email'],
+                        ':nid' => $row['nid'],
+                    ]);
+                    $changed = true;
+                }
                 continue;
             }
-            if (($current['names'] ?? '') !== $row['names'] || ($current['email'] ?? '') !== $row['email']) {
-                $update->execute([
-                    ':names' => $row['names'],
-                    ':email' => $row['email'],
-                    ':nid' => $row['nid'],
-                ]);
-                $changed = true;
+
+            foreach ($row['old_emails'] as $oldEmail) {
+                $selectByEmail->execute([':email' => $oldEmail]);
+                if ($selectByEmail->fetch(PDO::FETCH_ASSOC)) {
+                    $updateByEmail->execute([
+                        ':names' => $row['names'],
+                        ':email' => $row['email'],
+                        ':old_email' => $oldEmail,
+                    ]);
+                    $changed = true;
+                    break;
+                }
             }
         }
 
