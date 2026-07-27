@@ -79,6 +79,7 @@ try {
         ':user_type' => $sessionType,
     ]);
 
+    app_db_persist();
     redirect_password('success', 'Password changed successfully.');
 } catch (PDOException $e) {
     redirect_password('error', 'Could not update password. Please try again.');

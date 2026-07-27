@@ -1,34 +1,34 @@
 <?php
-// Include the database connection file
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'Admin') {
+    header('Location: index.php');
+    exit();
+}
+
 require_once 'connection.php';
 
-// Check if the ID parameter is provided via GET request
-if (isset($_GET['nid']) && !empty($_GET['nid'])) {
-    // Sanitize the ID parameter to prevent SQL injection
-    $nid = filter_var($_GET['nid'], FILTER_SANITIZE_STRING);
+if (isset($_GET['nid']) && $_GET['nid'] !== '') {
+    $nid = trim((string)$_GET['nid']);
 
     try {
-        // Prepare a DELETE statement
-        $stmt = $pdo->prepare("DELETE FROM users WHERE nid = :nid");
+        $stmt = $pdo->prepare('DELETE FROM users WHERE nid = :nid');
+        $stmt->execute([':nid' => $nid]);
 
-        // Bind the ID parameter
-        $stmt->bindParam(':nid', $nid, PDO::PARAM_STR);
-
-        // Execute the DELETE statement
-        $stmt->execute();
-
-        // Check if any row was affected
         if ($stmt->rowCount() > 0) {
-            echo "Row with ID $nid deleted successfully.";
-            header("location:view-users.php");
-        } else {
-            echo "No rows deleted. Row with ID $nid may not exist.";
+            app_db_persist();
+            header('Location: view-users.php?deleted=1');
+            exit();
         }
+
+        header('Location: view-users.php?error=' . urlencode('User not found.'));
+        exit();
     } catch (PDOException $e) {
-        // Handle database errors
-        echo "Error: " . $e->getMessage();
+        header('Location: view-users.php?error=' . urlencode('Could not delete user.'));
+        exit();
     }
-} else {
-    echo "No ID parameter provided.";
 }
-?>
+
+header('Location: view-users.php');
+exit();

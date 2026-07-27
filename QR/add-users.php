@@ -77,22 +77,17 @@ if (isset($_POST['submit'])) {
                     $hashed = password_hash($plainPassword, PASSWORD_DEFAULT);
                     $stmt = $pdo->prepare('INSERT INTO users (user_type, nid, names, email, password) VALUES (?, ?, ?, ?, ?)');
                     $stmt->execute([$user_type, $nid, $names, $email, $hashed]);
+                    app_db_persist();
 
                     if ($passwordMode === 'default') {
                         $defaultPasswordHint = $user_type === 'Admin' ? 'admin123' : 'gate@2026';
-                        $message = 'User was added successfully! Default password is: ' . $defaultPasswordHint;
+                        $_SESSION['flash_user_added'] = 'User added successfully. Default password: ' . $defaultPasswordHint;
                     } else {
-                        $message = 'User was added successfully with the custom password you set.';
+                        $_SESSION['flash_user_added'] = 'User added successfully with the custom password you set.';
                     }
 
-                    // Clear form after success
-                    $form = [
-                        'user_type' => 'Guest',
-                        'nid' => '',
-                        'names' => '',
-                        'email' => '',
-                        'password_mode' => 'default',
-                    ];
+                    header('Location: view-users.php?added=1');
+                    exit();
                 }
             } catch (PDOException $e) {
                 $Error = 'Could not add user. Please try again.';

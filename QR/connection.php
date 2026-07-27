@@ -2,7 +2,7 @@
 /**
  * Database connection
  * - Local XAMPP: MySQL (default)
- * - Vercel / serverless: bundled SQLite (works without external DB)
+ * - Vercel / serverless: bundled SQLite with optional Blob persistence
  * - Optional remote MySQL via env: DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS
  */
 
@@ -13,6 +13,180 @@ if (!function_exists('app_is_vercel')) {
             || getenv('VERCEL_ENV') !== false
             || isset($_SERVER['VERCEL'])
             || isset($_ENV['VERCEL']);
+    }
+}
+
+if (!function_exists('app_blob_token')) {
+    function app_blob_token(): ?string
+    {
+        $token = getenv('BLOB_READ_WRITE_TOKEN');
+        if ($token === false || $token === '') {
+            $token = getenv('VERCEL_BLOB_READ_WRITE_TOKEN');
+        }
+        return ($token !== false && $token !== '') ? $token : null;
+    }
+}
+
+if (!function_exists('app_sqlite_runtime_path')) {
+    function app_sqlite_runtime_path(): string
+    {
+        if (!isset($GLOBALS['app_sqlite_runtime_path'])) {
+            $GLOBALS['app_sqlite_runtime_path'] = sys_get_temp_dir()
+                . DIRECTORY_SEPARATOR
+                . 'computer_checks_utb.sqlite';
+        }
+        return $GLOBALS['app_sqlite_runtime_path'];
+    }
+}
+
+if (!function_exists('app_blob_list')) {
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    function app_blob_list(string $prefix): array
+    {
+        $token = app_blob_token();
+        if ($token === null) {
+            return [];
+        }
+
+        $url = 'https://blob.vercel-storage.com?prefix=' . rawurlencode($prefix);
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $token],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 20,
+        ]);
+        $body = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($body === false || $code < 200 || $code >= 300) {
+            return [];
+        }
+
+        $json = json_decode($body, true);
+        if (!is_array($json) || !isset($json['blobs']) || !is_array($json['blobs'])) {
+            return [];
+        }
+
+        return $json['blobs'];
+    }
+}
+
+if (!function_exists('app_blob_download_url')) {
+    function app_blob_download_url(string $blobUrl, string $targetPath): bool
+    {
+        $ch = curl_init($blobUrl);
+        $fp = fopen($targetPath, 'wb');
+        if ($fp === false) {
+            curl_close($ch);
+            return false;
+        }
+
+        curl_setopt_array($ch, [
+            CURLOPT_FILE => $fp,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_TIMEOUT => 30,
+        ]);
+        $ok = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        fclose($fp);
+
+        return $ok !== false && $code >= 200 && $code < 300 && is_file($targetPath) && filesize($targetPath) > 0;
+    }
+}
+
+if (!function_exists('app_blob_upload_sqlite')) {
+    function app_blob_upload_sqlite(string $localPath): ?string
+    {
+        $token = app_blob_token();
+        if ($token === null || !is_file($localPath)) {
+            return null;
+        }
+
+        $bytes = file_get_contents($localPath);
+        if ($bytes === false) {
+            return null;
+        }
+
+        $ch = curl_init('https://blob.vercel-storage.com/upload');
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer ' . $token,
+                'x-vercel-filename: computer-checks/database.sqlite',
+                'x-vercel-add-random-suffix: false',
+                'Content-Type: application/octet-stream',
+            ],
+            CURLOPT_POSTFIELDS => $bytes,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 45,
+        ]);
+        $body = curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($body === false || $code < 200 || $code >= 300) {
+            return null;
+        }
+
+        $json = json_decode($body, true);
+        if (!is_array($json) || empty($json['url'])) {
+            return null;
+        }
+
+        return (string)$json['url'];
+    }
+}
+
+if (!function_exists('app_sqlite_bootstrap')) {
+    function app_sqlite_bootstrap(string $seed): string
+    {
+        $runtime = app_sqlite_runtime_path();
+        $loaded = false;
+
+        $blobUrl = getenv('BLOB_DATABASE_URL');
+        if ($blobUrl !== false && $blobUrl !== '') {
+            $loaded = app_blob_download_url($blobUrl, $runtime);
+        }
+
+        if (!$loaded) {
+            $blobs = app_blob_list('computer-checks/database.sqlite');
+            if (!empty($blobs[0]['url'])) {
+                $loaded = app_blob_download_url((string)$blobs[0]['url'], $runtime);
+            }
+        }
+
+        if (!$loaded) {
+            if (!is_file($runtime) || filesize($runtime) === 0) {
+                if (!@copy($seed, $runtime)) {
+                    return $seed;
+                }
+            }
+        }
+
+        return $runtime;
+    }
+}
+
+if (!function_exists('app_db_persist')) {
+  /**
+   * Save SQLite changes on Vercel so new users/data appear on all requests.
+   */
+    function app_db_persist(): void
+    {
+        if (!app_is_vercel()) {
+            return;
+        }
+
+        $runtime = app_sqlite_runtime_path();
+        if (!is_file($runtime) || filesize($runtime) === 0) {
+            return;
+        }
+
+        app_blob_upload_sqlite($runtime);
     }
 }
 
@@ -42,15 +216,7 @@ if (!function_exists('app_pdo')) {
                 throw new PDOException('SQLite seed database missing at QR/data/computer_checks.sqlite');
             }
 
-            // Vercel functions can only write under /tmp
-            $runtimeDir = sys_get_temp_dir();
-            $runtime = $runtimeDir . DIRECTORY_SEPARATOR . 'computer_checks_utb.sqlite';
-            if (!is_file($runtime) || filesize($runtime) === 0) {
-                if (!@copy($seed, $runtime)) {
-                    // Fall back to read-only seed (login works; writes may fail)
-                    $runtime = $seed;
-                }
-            }
+            $runtime = app_sqlite_bootstrap($seed);
 
             $pdo = new PDO('sqlite:' . $runtime, null, null, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

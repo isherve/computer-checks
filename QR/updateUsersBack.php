@@ -53,6 +53,7 @@ try {
     ]);
 
     if ($ok && $statement->rowCount() >= 0) {
+        app_db_persist();
         header('Location: view-users.php?updated=1');
         exit();
     }
