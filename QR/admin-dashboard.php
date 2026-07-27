@@ -173,7 +173,7 @@ $email = $user['names'];
 </head>
 <body>
 <header>
-<img src="img/QR-logo.JPG" alt="Logo" class="logo img-fluid col-md-4 mt-0 image-container float-left">
+<img src="img/QR-logo.jpg" alt="Logo" class="logo img-fluid col-md-4 mt-0 image-container float-left">
   
         <h1>Admin | Dashboard</h1>
          
@@ -187,7 +187,7 @@ $email = $user['names'];
 <div class="col-md-2 left-division">
 <div class="sidebar">
   
-    <!-- <img src="img/QR-logo.JPG" alt="Logo" class="logo img-fluid col-md-4 mt-5 image-container"> -->
+    <!-- <img src="img/QR-logo.jpg" alt="Logo" class="logo img-fluid col-md-4 mt-5 image-container"> -->
     <nav class="sidebar-sticky mt-5">
     <ul class="nav flex-column">
       <li class="nav-item">

@@ -177,7 +177,7 @@ if (isset($_POST['submit'])) {
 </head>
 <body>
  <header>
- <img src="img/QR-logo.JPG" alt="Logo" class="logo img-fluid col-md-4 mt-0 image-container float-left">
+ <img src="img/QR-logo.jpg" alt="Logo" class="logo img-fluid col-md-4 mt-0 image-container float-left">
         <h1>User | Dashboard</h1>
         <h5>Computer Checks</h5>
   

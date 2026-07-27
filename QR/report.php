@@ -289,7 +289,7 @@ $commentRows = $commentsStmt ? $commentsStmt->fetchAll(PDO::FETCH_ASSOC) : [];
 </head>
 <body>
 <header class="app-header">
-    <img src="img/QR-logo.JPG" alt="Logo" class="logo">
+    <img src="img/QR-logo.jpg" alt="Logo" class="logo">
     <div>
         <h1><?php echo htmlspecialchars($user_type); ?> | Logs</h1>
         <h5>Welcome, <?php echo htmlspecialchars($displayName); ?> — Computer Checks · UTBrubavu</h5>

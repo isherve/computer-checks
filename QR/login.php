@@ -155,6 +155,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .span:hover{
             color: black;
         }
+        .logo {
+            max-width: 140px;
+            height: auto;
+            margin-bottom: 10px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
     </style>
 </head>
 
@@ -166,6 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <section>
         <div class="container">
+            <img src="img/QR-logo.jpg" alt="Computer Checks Logo" class="logo">
             <h5>Login</h5>
             <form action="#" method="POST">
                 <label for="user_type">Who are you?</label>

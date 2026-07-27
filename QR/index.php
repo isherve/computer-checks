@@ -49,12 +49,22 @@
     p{
       color:white;
     }
+    .logo {
+        max-width: 180px;
+        height: auto;
+        margin: 0 auto 18px auto;
+        display: block;
+        background: rgba(255,255,255,0.85);
+        border-radius: 12px;
+        padding: 8px;
+    }
    
 </style>
 </head>
 <body>
 
 <div class="container">
+    <img src="img/QR-logo.jpg" alt="Computer Checks Logo" class="logo">
     <h4>Welcome to<br>Computer Checks</h4>
     <!-- <p>Check computers easily using QR codes</p> -->
     <a href="login.php" class="btn btn-lg">Get Started</a>
