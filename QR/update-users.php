@@ -121,9 +121,9 @@ if ($nid !== '') {
       </div>
 
       <div class="form-group">
-        <label>NID</label>
-        <input class="form-control" type="text" value="<?php echo htmlspecialchars($result->nid); ?>" disabled>
-        <input type="hidden" name="nid" value="<?php echo htmlspecialchars($result->nid); ?>">
+        <label for="nid">NID</label>
+        <input class="form-control" type="text" id="nid" name="nid" value="<?php echo htmlspecialchars($result->nid); ?>" required>
+        <input type="hidden" name="original_nid" value="<?php echo htmlspecialchars($result->nid); ?>">
       </div>
 
       <button class="btn btn-primary" type="submit" name="update">Save Changes</button>

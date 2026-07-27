@@ -20,12 +20,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['update'])) {
 
 $user_type = trim((string)($_POST['user_type'] ?? ''));
 $nid = trim((string)($_POST['nid'] ?? ''));
+$originalNid = trim((string)($_POST['original_nid'] ?? ''));
 $names = trim((string)($_POST['names'] ?? ''));
 $email = trim((string)($_POST['email'] ?? ''));
 
 $allowedRoles = ['Admin', 'Guest'];
-if ($nid === '' || $names === '' || $email === '' || !in_array($user_type, $allowedRoles, true)) {
-    header('Location: update-users.php?nid=' . urlencode($nid) . '&error=' . urlencode('Please fill all fields with a valid role (Admin or Guest).'));
+if ($nid === '' || $originalNid === '' || $names === '' || $email === '' || !in_array($user_type, $allowedRoles, true)) {
+    header('Location: update-users.php?nid=' . urlencode($originalNid !== '' ? $originalNid : $nid) . '&error=' . urlencode('Please fill all fields with a valid role (Admin or Guest).'));
     exit();
 }
 
@@ -35,21 +36,22 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 }
 
 try {
-    // Ensure email is not used by a different user
-    $check = $pdo->prepare('SELECT nid FROM users WHERE email = :email AND nid <> :nid LIMIT 1');
-    $check->execute([':email' => $email, ':nid' => $nid]);
+    // Ensure email or NID is not used by a different user
+    $check = $pdo->prepare('SELECT nid FROM users WHERE (email = :email OR nid = :nid) AND nid <> :original_nid LIMIT 1');
+    $check->execute([':email' => $email, ':nid' => $nid, ':original_nid' => $originalNid]);
     if ($check->fetch()) {
-        header('Location: update-users.php?nid=' . urlencode($nid) . '&error=' . urlencode('That email is already used by another user.'));
+        header('Location: update-users.php?nid=' . urlencode($originalNid) . '&error=' . urlencode('That email or NID is already used by another user.'));
         exit();
     }
 
-    $query = 'UPDATE users SET user_type = :user_type, names = :names, email = :email WHERE nid = :nid';
+    $query = 'UPDATE users SET user_type = :user_type, nid = :nid, names = :names, email = :email WHERE nid = :original_nid';
     $statement = $pdo->prepare($query);
     $ok = $statement->execute([
         ':user_type' => $user_type,
+        ':nid' => $nid,
         ':names' => $names,
         ':email' => $email,
-        ':nid' => $nid,
+        ':original_nid' => $originalNid,
     ]);
 
     if ($ok && $statement->rowCount() >= 0) {

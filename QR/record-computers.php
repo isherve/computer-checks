@@ -36,11 +36,11 @@ $email = $user['names'];
 require_once 'connection.php';
 
 if (isset($_POST['submit'])) {
-    $sn = $_POST['sn'];
-    $model = $_POST['model'];
-    $type = $_POST['type'];
-    $owno = $_POST['owno'];
-    $owname = $_POST['owname'];
+    $sn = trim((string)$_POST['sn']);
+    $model = trim((string)$_POST['model']);
+    $type = trim((string)$_POST['type']);
+    $owno = trim((string)$_POST['owno']);
+    $owname = trim((string)$_POST['owname']);
 
     try {
         // Check if computer with the same serial number already exists
@@ -52,15 +52,30 @@ if (isset($_POST['submit'])) {
 
         if ($count > 0) {
             $Error = "Error: Computer's S/N already exists.";
+        } elseif ($model === '|#' || $type === '#') {
+            $Error = "Please select a valid model and owner type.";
         } else {
-            // Insert computer record into the database
-            $stmt = $pdo->prepare("INSERT INTO computer_info (sn, model,type, owno, owname) VALUES (?,?, ?, ?, ?)");
-            $stmt->execute([$sn, $model,$type, $owno, $owname]);
+            // Only registered users in the system can be used as laptop owners.
+            $userCheck = $pdo->prepare("SELECT user_type, names, nid FROM users WHERE nid = :nid AND LOWER(TRIM(names)) = LOWER(TRIM(:name)) LIMIT 1");
+            $userCheck->execute([
+                ':nid' => $owno,
+                ':name' => $owname,
+            ]);
+            $ownerUser = $userCheck->fetch(PDO::FETCH_ASSOC);
 
-            // Redirect or display a success message
-            // header('Location: Institutions.php'); // Redirect to a page showing the list of computers
-            $message = "Computer was recorded successfully!" ;
-            $lastInsertedSn = $sn; // Store the last inserted serial number
+            if (!$ownerUser) {
+                $Error = "Only users registered in the system can be selected as laptop owners. Check the owner's ID and name.";
+            } else {
+                // Insert computer record into the database
+                $stmt = $pdo->prepare("INSERT INTO computer_info (sn, model,type, owno, owname) VALUES (?,?, ?, ?, ?)");
+                $stmt->execute([$sn, $model, $type, $owno, $owname]);
+                app_db_persist();
+
+                // Redirect or display a success message
+                // header('Location: Institutions.php'); // Redirect to a page showing the list of computers
+                $message = "Computer was recorded successfully!" ;
+                $lastInsertedSn = $sn; // Store the last inserted serial number
+            }
         }
     } catch (PDOException $e) {
         die('Error occurred: ' . $e->getMessage());
@@ -284,6 +299,7 @@ if (isset($_POST['submit'])) {
             <label for="registrationNumber">Owner's Identification:</label>
             <input type="text" class="form-control" id="registrationNumber" name="owno" placeholder="Enter Identification" required>
             <span id="regError" class="error"></span>
+            <small class="form-text text-muted">The owner must already exist in the system users list.</small>
         </div>
         <div class="form-group">
             <label for="ownerName">Owner's Name:</label>
