@@ -151,7 +151,7 @@ if (isset($_SESSION['flash_user_added'])) {
             <tr>
               <td><?php echo $i + 1; ?></td>
               <td><?php echo htmlspecialchars($row['nid']); ?></td>
-              <td><?php echo htmlspecialchars($row['user_type']); ?></td>
+              <td><?php echo htmlspecialchars($row['user_type'] === 'Guest' ? 'Gate Officer' : $row['user_type']); ?></td>
               <td><?php echo htmlspecialchars($row['names']); ?></td>
               <td><?php echo htmlspecialchars($row['email']); ?></td>
               <td class="text-center">

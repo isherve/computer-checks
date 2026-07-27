@@ -64,9 +64,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `user_type`, `nid`, `name`, `email`, `password`) VALUES
-(6, 'Admin', '21UTB06834', 'Mfitumukiza Eric', 'mfitumukizaeric3@gmail.com', '$2y$10$bD3W3M/bb/AFoOX6sOASiO6SF3HUn4pxlTw1zWOT2Sa12FdZ6joNi'),
+(6, 'Admin', '21UTB06834', 'Hitiyise Mupenzi', 'hitiyisemupenzi@gmail.com', '$2y$10$bD3W3M/bb/AFoOX6sOASiO6SF3HUn4pxlTw1zWOT2Sa12FdZ6joNi'),
 (7, 'Admin', '21UTB06780', 'Tuyishimire Gaspard', 'tuyishimiregaspard20@gmail.com', '$2y$10$2MuRCnXvgXG5KSCEhp50pu.QZ.FSNZaG6W/lGOFpkuQNZZPrSxsFO'),
-(8, 'Guest', '21UTB03769', 'Gahozo Sosthene', 'gahozo909@gmail.com', '$2y$10$JTC3d7o2Lr2Faar1ImHCp.x.Z2AqahvgZCDH36XMEYmyu.f9q/NBC');
+(8, 'Guest', '21UTB03769', 'Ahadibash Alice Cecile', 'ahadibashalicecile@gmail.com', '$2y$10$JTC3d7o2Lr2Faar1ImHCp.x.Z2AqahvgZCDH36XMEYmyu.f9q/NBC');
 
 --
 -- Indexes for dumped tables
