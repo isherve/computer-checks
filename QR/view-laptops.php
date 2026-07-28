@@ -207,7 +207,12 @@ $email = $user['names'];
 <div class="record-summary">
   <div>  <p>Welcome,<span style="color: #3498db;font-family: poppins;font-weight: bold; text-align: center;"> <?php echo $email; ?>!</span></p> 
             <h2 style="font-family: poppins;color:green;">Laptops</h2>
-
+            <?php if (isset($_GET['updated'])): ?>
+              <div class="alert alert-success">Laptop information updated successfully.</div>
+            <?php endif; ?>
+            <?php if (!empty($_GET['error'])): ?>
+              <div class="alert alert-danger"><?php echo htmlspecialchars((string)$_GET['error']); ?></div>
+            <?php endif; ?>
 
 
 <!--OPEN SEARCH-->
@@ -241,11 +246,13 @@ if (isset($_POST['submit'])) {
                 $owno = htmlspecialchars($row['owno']);
                 $owname = htmlspecialchars($row['owname']);
                 $nameParam = urlencode($row['owname']);
+                $snParam = urlencode($row['sn']);
                 echo "<div class='mb-3 p-2 border rounded'>";
                 echo "<p class='mb-1'><strong>Serial Number:</strong> $sn</p>";
                 echo "<p class='mb-1'><strong>Model:</strong> $model</p>";
                 echo "<p class='mb-1'><strong>Owner's Number:</strong> $owno</p>";
                 echo "<p class='mb-1'><strong>Owner's Name:</strong> $owname</p>";
+                echo "<a href='update-laptop.php?sn=" . $snParam . "' class='btn btn-warning btn-sm mr-1'>Edit</a>";
                 echo "<a href='test-qr.php?name=" . $nameParam . "' class='open-in-new-tab'>
                         <button type='button' class='btn btn-primary btn-sm'>Generate QR Code</button>
                       </a>";
@@ -294,13 +301,15 @@ function selectStudent(){
         $i = 1;
         foreach ($results as $row) {
             $nameParam = urlencode($row['owname']);
+            $snParam = urlencode($row['sn']);
             echo "<tr>";
             echo "<td><b>$i.&nbsp;</b></td>";
             echo "<td>" . htmlspecialchars($row['sn']) . "</td>";
             echo "<td>" . htmlspecialchars($row['model']) . "</td>";
             echo "<td>" . htmlspecialchars($row['owno']) . "</td>";
             echo "<td>" . htmlspecialchars($row['owname']) . "</td>";
-            echo "<td>
+            echo "<td style='white-space:nowrap;'>
+                    <a href='update-laptop.php?sn=" . $snParam . "' class='btn btn-warning btn-sm mr-1'>Edit</a>
                     <a href='test-qr.php?name=" . $nameParam . "' class='open-in-new-tab' target='_blank'>
                         <button type='button' class='btn btn-primary btn-sm'>Generate QR Code</button>
                     </a>
