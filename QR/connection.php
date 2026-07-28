@@ -221,28 +221,32 @@ if (!function_exists('app_apply_runtime_migrations')) {
                 'names' => 'Ahadibash Alice Cecile',
                 'email' => 'ahadibashalicecile@gmail.com',
                 'old_emails' => ['gahozo909@gmail.com'],
+                'password' => 'gate@2026',
             ],
             [
                 'nid' => '21UTB06834',
                 'names' => 'Hitiyise Mupenzi',
                 'email' => 'hitiyisemupenzi@gmail.com',
                 'old_emails' => ['mfitumukizaeric3@gmail.com'],
+                'password' => 'admin123',
             ],
         ];
 
-        $selectByNid = $pdo->prepare('SELECT names, email FROM users WHERE nid = :nid LIMIT 1');
-        $selectByEmail = $pdo->prepare('SELECT nid, names, email FROM users WHERE email = :email LIMIT 1');
-        $updateByNid = $pdo->prepare('UPDATE users SET names = :names, email = :email WHERE nid = :nid');
-        $updateByEmail = $pdo->prepare('UPDATE users SET names = :names, email = :email WHERE email = :old_email');
+        $selectByNid = $pdo->prepare('SELECT names, email, password FROM users WHERE nid = :nid LIMIT 1');
+        $selectByEmail = $pdo->prepare('SELECT nid, names, email, password FROM users WHERE email = :email LIMIT 1');
+        $updateByNid = $pdo->prepare('UPDATE users SET names = :names, email = :email, password = :password WHERE nid = :nid');
+        $updateByEmail = $pdo->prepare('UPDATE users SET names = :names, email = :email, password = :password WHERE email = :old_email');
 
         foreach ($updates as $row) {
             $selectByNid->execute([':nid' => $row['nid']]);
             $current = $selectByNid->fetch(PDO::FETCH_ASSOC);
             if ($current) {
-                if (($current['names'] ?? '') !== $row['names'] || ($current['email'] ?? '') !== $row['email']) {
+                $passwordOk = isset($current['password']) && password_verify($row['password'], (string)$current['password']);
+                if (($current['names'] ?? '') !== $row['names'] || ($current['email'] ?? '') !== $row['email'] || !$passwordOk) {
                     $updateByNid->execute([
                         ':names' => $row['names'],
                         ':email' => $row['email'],
+                        ':password' => password_hash($row['password'], PASSWORD_DEFAULT),
                         ':nid' => $row['nid'],
                     ]);
                     $changed = true;
@@ -256,6 +260,7 @@ if (!function_exists('app_apply_runtime_migrations')) {
                     $updateByEmail->execute([
                         ':names' => $row['names'],
                         ':email' => $row['email'],
+                        ':password' => password_hash($row['password'], PASSWORD_DEFAULT),
                         ':old_email' => $oldEmail,
                     ]);
                     $changed = true;
