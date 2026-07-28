@@ -318,14 +318,11 @@ if (isset($_POST['submit'])) {
             validateOwnerName();
         });
 
-        document.getElementById("registrationNumber").addEventListener("blur", function() {
-            validateRegistrationNumber();
-        });
-
         function updateValidation() {
             var registrationNumber = document.getElementById("registrationNumber");
             registrationNumber.placeholder = "Enter Identification";
-            registrationNumber.pattern = "";
+            registrationNumber.removeAttribute("pattern");
+            registrationNumber.setCustomValidity("");
         }
 
         function validateSerialNumber() {
@@ -355,6 +352,8 @@ if (isset($_POST['submit'])) {
         }
 
         function validateRegistrationNumber() {
+            document.getElementById("registrationNumber").removeAttribute("pattern");
+            document.getElementById("registrationNumber").setCustomValidity("");
             document.getElementById("regError").textContent = "";
             return true;
         }
@@ -366,6 +365,7 @@ if (isset($_POST['submit'])) {
 
             return isSnValid && isNameValid && isRegValid;
         }
+        updateValidation();
     </script>
 
 
