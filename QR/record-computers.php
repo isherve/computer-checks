@@ -323,22 +323,9 @@ if (isset($_POST['submit'])) {
         });
 
         function updateValidation() {
-            var type = document.getElementById("type").value;
             var registrationNumber = document.getElementById("registrationNumber");
-            
-            if (type === "student") {
-                registrationNumber.placeholder = "Enter Registration Number (e.g., 12UTB3456)";
-                registrationNumber.pattern = "^\\d{2}UTB\\d+$";
-            } else if (type === "staff") {
-              registrationNumber.placeholder = "Enter NID (16 digits, starting with 1)";
-              registrationNumber.pattern = "^1\\d{15}$";
-            } else if (type === "other") {
-                registrationNumber.placeholder = "Enter NID (16 digits, starting with 1)";
-                registrationNumber.pattern = "^1\\d{15}$";
-            } else {
-                registrationNumber.placeholder = "Enter Identification";
-                registrationNumber.pattern = "";
-            }
+            registrationNumber.placeholder = "Enter Identification";
+            registrationNumber.pattern = "";
         }
 
         function validateSerialNumber() {
@@ -368,43 +355,8 @@ if (isset($_POST['submit'])) {
         }
 
         function validateRegistrationNumber() {
-            var type = document.getElementById("type").value;
-            var regNumber = document.getElementById("registrationNumber").value;
-            var regPattern;
-            var isValid = true;
-
-            if (type === "student") {
-                regPattern = /^\d{2}UTB\d+$/; // Pattern: 2 digits, UTB, followed by digits
-                if (!regPattern.test(regNumber)) {
-                    alert("Registration Number must be in the format: 2 digits, UTB, followed by digits.");
-                    document.getElementById("regError").textContent = "Registration Number must be in the format: 2 digits, UTB, followed by digits.";
-                    isValid = false;
-                }
-            } else if (type === "staff") {
-                regPattern = /^1\d{15}$/; // Pattern: 1 followed by 15 digits
-                if (!regPattern.test(regNumber)) {
-                    alert("NID must be 16 digits long, start with 1, and not be a single repeated digit.");
-                    document.getElementById("regError").textContent = "NID must be 16 digits long, start with 1, and not be a single repeated digit.";
-                    isValid = false;
-                }
-            } else if (type === "other") {
-                regPattern = /^1\d{15}$/; // Pattern: 1 followed by 15 digits
-                if (!regPattern.test(regNumber)) {
-                    alert("NID must be 16 digits long, start with 1, and not be a single repeated digit.");
-                    document.getElementById("regError").textContent = "NID must be 16 digits long, start with 1, and not be a single repeated digit.";
-                    isValid = false;
-                }
-                if (/^(.)\1+$/.test(regNumber)) { // Check for single repeated digit
-                    alert("NID cannot be a single repeated digit.");
-                    document.getElementById("regError").textContent = "NID cannot be a single repeated digit.";
-                    isValid = false;
-                }
-            }
-
-            if (isValid) {
-                document.getElementById("regError").textContent = "";
-            }
-            return isValid;
+            document.getElementById("regError").textContent = "";
+            return true;
         }
 
         function validateForm() {
