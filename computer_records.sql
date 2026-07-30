@@ -63,6 +63,7 @@ CREATE TABLE `logs` (
   `owno` varchar(100) NOT NULL,
   `owname` varchar(100) NOT NULL,
   `action` varchar(50) NOT NULL,
+  `checked_by` varchar(150) NOT NULL DEFAULT '',
   `comment` varchar(100) NOT NULL,
   `date` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

@@ -64,11 +64,50 @@
             font-weight: bold;
             margin-bottom: 8px;
         }
-        .error { color: #c0392b; text-align: center; }
+        .error {
+            color: #c0392b;
+            text-align: center;
+            background: #fdecea;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 14px;
+            font-size: 0.9rem;
+        }
+        .officer-box {
+            border: 1px solid #d1ecf1;
+            background: #f0f9fb;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .officer-box .hint {
+            font-size: 0.8rem;
+            color: #0c5460;
+            margin: 0 0 10px;
+        }
+        .pw-wrap { position: relative; }
+        .pw-wrap button.toggle {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: auto;
+            padding: 4px 8px;
+            background: transparent;
+            color: #495057;
+            font-size: 12px;
+            font-weight: normal;
+        }
+        .pw-wrap button.toggle:hover { background: transparent; color: #007bff; }
+        .pw-wrap input { padding-right: 70px; }
     </style>
 </head>
 <body>
 <?php
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 require_once __DIR__ . '/connection.php';
 
 $sn = isset($_GET['sn']) ? trim((string)$_GET['sn']) : '';
@@ -76,6 +115,8 @@ $model = isset($_GET['model']) ? (string)$_GET['model'] : '';
 $type = isset($_GET['type']) ? (string)$_GET['type'] : '';
 $owno = isset($_GET['owno']) ? (string)$_GET['owno'] : '';
 $owname = isset($_GET['owname']) ? (string)$_GET['owname'] : '';
+$error = isset($_GET['error']) ? (string)$_GET['error'] : '';
+$officerEmail = isset($_GET['email']) ? (string)$_GET['email'] : (string)($_SESSION['email'] ?? '');
 
 if ($sn === '') {
     echo '<div class="container"><h1>Invalid QR</h1><p class="error">No computer data found in the link. Generate a new QR code from Computer Checks.</p></div></body></html>';
@@ -105,7 +146,10 @@ function h($v) {
     <div class="container">
         <div class="brand">Computer Checks</div>
         <h1>Gate Log Form</h1>
-        <form action="submit_log.php" method="post">
+        <?php if ($error !== ''): ?>
+            <div class="error"><?php echo h($error); ?></div>
+        <?php endif; ?>
+        <form action="submit_log.php" method="post" autocomplete="on">
             <div class="form-group">
                 <label for="sn">Serial Number</label>
                 <input type="text" id="sn" name="sn" value="<?php echo h($sn); ?>" readonly>
@@ -137,8 +181,37 @@ function h($v) {
                 <label for="comment">Comment</label>
                 <input type="text" id="comment" name="comment" placeholder="Optional">
             </div>
+
+            <div class="officer-box">
+                <p class="hint">Confirm your account to record who scanned this QR.</p>
+                <div class="form-group">
+                    <label for="officer_email">Officer Email</label>
+                    <input type="email" id="officer_email" name="officer_email" value="<?php echo h($officerEmail); ?>" required placeholder="your@email.com" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="officer_password">Password</label>
+                    <div class="pw-wrap">
+                        <input type="password" id="officer_password" name="officer_password" required placeholder="Enter your password" autocomplete="current-password">
+                        <button type="button" class="toggle" onclick="togglePw()">Show</button>
+                    </div>
+                </div>
+            </div>
+
             <button type="submit">Commit</button>
         </form>
     </div>
+    <script>
+    function togglePw() {
+        var input = document.getElementById('officer_password');
+        var btn = document.querySelector('.pw-wrap .toggle');
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.textContent = 'Hide';
+        } else {
+            input.type = 'password';
+            btn.textContent = 'Show';
+        }
+    }
+    </script>
 </body>
 </html>

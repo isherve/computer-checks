@@ -207,6 +207,34 @@ if (!function_exists('app_db_persist')) {
     }
 }
 
+if (!function_exists('app_ensure_logs_checked_by')) {
+    /**
+     * Ensure logs.checked_by exists (who scanned / committed the gate log).
+     */
+    function app_ensure_logs_checked_by(PDO $pdo): bool
+    {
+        $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        if ($driver === 'sqlite') {
+            $cols = $pdo->query('PRAGMA table_info(logs)')->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($cols as $col) {
+                if (strcasecmp((string)($col['name'] ?? ''), 'checked_by') === 0) {
+                    return false;
+                }
+            }
+            $pdo->exec("ALTER TABLE logs ADD COLUMN checked_by TEXT NOT NULL DEFAULT ''");
+            return true;
+        }
+
+        // MySQL
+        $stmt = $pdo->query("SHOW COLUMNS FROM logs LIKE 'checked_by'");
+        if ($stmt && $stmt->fetch(PDO::FETCH_ASSOC)) {
+            return false;
+        }
+        $pdo->exec("ALTER TABLE logs ADD COLUMN checked_by VARCHAR(150) NOT NULL DEFAULT '' AFTER owname");
+        return true;
+    }
+}
+
 if (!function_exists('app_apply_runtime_migrations')) {
     /**
      * Apply small data migrations to the live SQLite copy.
@@ -214,6 +242,10 @@ if (!function_exists('app_apply_runtime_migrations')) {
     function app_apply_runtime_migrations(PDO $pdo): bool
     {
         $changed = false;
+
+        if (app_ensure_logs_checked_by($pdo)) {
+            $changed = true;
+        }
 
         $updates = [
             [
@@ -286,10 +318,16 @@ if (!function_exists('app_pdo')) {
             $user = getenv('DB_USER') ?: 'root';
             $pass = getenv('DB_PASS') !== false ? getenv('DB_PASS') : '';
             $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
-            return new PDO($dsn, $user, $pass, [
+            $pdo = new PDO($dsn, $user, $pass, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             ]);
+            try {
+                app_ensure_logs_checked_by($pdo);
+            } catch (PDOException $e) {
+                // Ignore if table missing during first setup
+            }
+            return $pdo;
         }
 
         // Vercel (or DB_DRIVER=sqlite): use bundled SQLite
@@ -319,10 +357,16 @@ if (!function_exists('app_pdo')) {
         $localHost = $host !== '' ? $host : 'localhost';
         $port = getenv('DB_PORT') ?: '3306';
         $dsn = "mysql:host={$localHost};port={$port};dbname={$dbname};charset=utf8mb4";
-        return new PDO($dsn, $user, $pass, [
+        $pdo = new PDO($dsn, $user, $pass, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]);
+        try {
+            app_ensure_logs_checked_by($pdo);
+        } catch (PDOException $e) {
+            // Ignore if table missing during first setup
+        }
+        return $pdo;
     }
 }
 

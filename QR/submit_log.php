@@ -1,4 +1,7 @@
 <?php
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 require_once 'connection.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -6,24 +9,92 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$serialNumber = $_POST['sn'] ?? '';
-$model = $_POST['model'] ?? '';
-$type = $_POST['type'] ?? '';
-$ownerNumber = $_POST['owno'] ?? '';
-$ownerName = $_POST['owname'] ?? '';
-$action = $_POST['action'] ?? '';
-$comment = $_POST['comment'] ?? '';
+$serialNumber = trim((string)($_POST['sn'] ?? ''));
+$model = trim((string)($_POST['model'] ?? ''));
+$type = trim((string)($_POST['type'] ?? ''));
+$ownerNumber = trim((string)($_POST['owno'] ?? ''));
+$ownerName = trim((string)($_POST['owname'] ?? ''));
+$action = trim((string)($_POST['action'] ?? ''));
+$comment = trim((string)($_POST['comment'] ?? ''));
+$officerEmail = trim((string)($_POST['officer_email'] ?? ''));
+$officerPassword = (string)($_POST['officer_password'] ?? '');
 
-$stmt = $pdo->prepare(
-    "INSERT INTO logs (sn, model, type, owno, owname, action, comment)
-     VALUES (?, ?, ?, ?, ?, ?, ?)"
-);
-$stmt->execute([$serialNumber, $model, $type, $ownerNumber, $ownerName, $action, $comment]);
+function redirect_log_form(string $sn, string $error, string $email = ''): void
+{
+    $q = 'sn=' . urlencode($sn) . '&error=' . urlencode($error);
+    if ($email !== '') {
+        $q .= '&email=' . urlencode($email);
+    }
+    header('Location: log_form.php?' . $q);
+    exit;
+}
+
+if ($serialNumber === '' || $action === '') {
+    header('Location: index.php');
+    exit;
+}
+
+if (!in_array($action, ['check-in', 'check-out'], true)) {
+    redirect_log_form($serialNumber, 'Invalid action selected.', $officerEmail);
+}
+
+if ($officerEmail === '' || $officerPassword === '') {
+    redirect_log_form($serialNumber, 'Officer email and password are required.', $officerEmail);
+}
+
+try {
+    app_ensure_logs_checked_by($pdo);
+
+    $auth = $pdo->prepare('SELECT names, email, password, user_type FROM users WHERE email = :email LIMIT 1');
+    $auth->execute([':email' => $officerEmail]);
+    $officer = $auth->fetch(PDO::FETCH_ASSOC);
+
+    $passwordOk = false;
+    if ($officer) {
+        $stored = (string)($officer['password'] ?? '');
+        if ($stored !== '' && password_verify($officerPassword, $stored)) {
+            $passwordOk = true;
+        } elseif ($stored !== '' && hash_equals($stored, $officerPassword)) {
+            $passwordOk = true;
+        }
+    }
+
+    if (!$passwordOk) {
+        redirect_log_form($serialNumber, 'Incorrect email or password. Log was not saved.', $officerEmail);
+    }
+
+    $checkedBy = trim((string)($officer['names'] ?? ''));
+    if ($checkedBy === '') {
+        $checkedBy = (string)$officer['email'];
+    }
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO logs (sn, model, type, owno, owname, action, comment, checked_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    );
+    $stmt->execute([
+        $serialNumber,
+        $model,
+        $type,
+        $ownerNumber,
+        $ownerName,
+        $action,
+        $comment,
+        $checkedBy,
+    ]);
+
+    if (function_exists('app_db_persist')) {
+        app_db_persist();
+    }
+} catch (PDOException $e) {
+    redirect_log_form($serialNumber, 'Could not save log. Please try again.', $officerEmail);
+}
 
 $sn = htmlspecialchars($serialNumber, ENT_QUOTES, 'UTF-8');
 $name = htmlspecialchars($ownerName, ENT_QUOTES, 'UTF-8');
 $status = htmlspecialchars($action, ENT_QUOTES, 'UTF-8');
-$commentSafe = htmlspecialchars(trim($comment), ENT_QUOTES, 'UTF-8');
+$commentSafe = htmlspecialchars($comment, ENT_QUOTES, 'UTF-8');
+$officerSafe = htmlspecialchars($checkedBy, ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -77,6 +148,7 @@ $commentSafe = htmlspecialchars(trim($comment), ENT_QUOTES, 'UTF-8');
         whose the owner is <span class="hl"><?php echo $name; ?></span>
         is recorded successfully!
         Status: <span class="hl"><?php echo $status; ?></span>
+        Checked by: <span class="hl"><?php echo $officerSafe; ?></span>
     </div>
     <?php if ($commentSafe !== ''): ?>
         <div class="comment-box"><strong>Comment:</strong> <?php echo $commentSafe; ?></div>

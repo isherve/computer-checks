@@ -16,6 +16,14 @@ if (!function_exists('app_build_report')) {
      */
     function app_build_report(PDO $pdo, array $get): array
     {
+        if (function_exists('app_ensure_logs_checked_by')) {
+            try {
+                app_ensure_logs_checked_by($pdo);
+            } catch (Throwable $e) {
+                // keep reporting even if migration already applied / unavailable
+            }
+        }
+
         $action = isset($get['action']) ? (string)$get['action'] : '';
         $period = isset($get['period']) ? (string)$get['period'] : '';
         $overall = !empty($get['overall']);
@@ -33,48 +41,48 @@ if (!function_exists('app_build_report')) {
         if ($period === 'all' || $period === '') {
             $commentsOnly = !empty($get['comments_only']);
             if ($commentsOnly) {
-                $query = "SELECT log_id, sn, model, type, owno, owname, action, comment, date FROM logs
+                $query = "SELECT log_id, sn, model, type, owno, owname, action, checked_by, comment, date FROM logs
                           WHERE comment IS NOT NULL AND TRIM(comment) != ''
                           ORDER BY date DESC LIMIT 500";
                 $title = 'Gate Logs with Comments';
             } else {
-                $query = 'SELECT log_id, sn, model, type, owno, owname, action, comment, date FROM logs ORDER BY date DESC LIMIT 500';
+                $query = 'SELECT log_id, sn, model, type, owno, owname, action, checked_by, comment, date FROM logs ORDER BY date DESC LIMIT 500';
                 $title = 'All Gate Logs (latest 500)';
             }
             $overall = true;
-            $columns = ['No', 'Serial Number', 'Model', 'Owner Type', 'Owner ID', 'Owner Name', 'Status', 'Check Time', 'Comment'];
+            $columns = ['No', 'Serial Number', 'Model', 'Owner Type', 'Owner ID', 'Owner Name', 'Status', 'Checked By', 'Check Time', 'Comment'];
         } elseif ($overall) {
-            $columns = ['No', 'Serial Number', 'Model', 'Owner Type', 'Owner ID', 'Owner Name', 'Status', 'Check Time', 'Comment'];
+            $columns = ['No', 'Serial Number', 'Model', 'Owner Type', 'Owner ID', 'Owner Name', 'Status', 'Checked By', 'Check Time', 'Comment'];
             switch ($period) {
                 case 'daily':
                     $date = (string)($get['date'] ?? '');
-                    $query = "SELECT log_id, sn, model, type, owno, owname, action, comment, date FROM logs WHERE {$dateExpr} = :date ORDER BY date DESC";
+                    $query = "SELECT log_id, sn, model, type, owno, owname, action, checked_by, comment, date FROM logs WHERE {$dateExpr} = :date ORDER BY date DESC";
                     $title = 'Overall Daily Report on ' . $date;
                     $params = [':date' => $date];
                     break;
                 case 'weekly':
                     $startDate = (string)($get['start_date'] ?? '');
                     $endDate = (string)($get['end_date'] ?? '');
-                    $query = "SELECT log_id, sn, model, type, owno, owname, action, comment, date FROM logs WHERE {$dateExpr} BETWEEN :start_date AND :end_date ORDER BY date DESC";
+                    $query = "SELECT log_id, sn, model, type, owno, owname, action, checked_by, comment, date FROM logs WHERE {$dateExpr} BETWEEN :start_date AND :end_date ORDER BY date DESC";
                     $title = 'Overall Weekly Report from ' . $startDate . ' to ' . $endDate;
                     $params = [':start_date' => $startDate, ':end_date' => $endDate];
                     break;
                 case 'monthly':
                     $month = (string)($get['month'] ?? '');
-                    $query = "SELECT log_id, sn, model, type, owno, owname, action, comment, date FROM logs WHERE {$monthExpr} = :month ORDER BY date DESC";
+                    $query = "SELECT log_id, sn, model, type, owno, owname, action, checked_by, comment, date FROM logs WHERE {$monthExpr} = :month ORDER BY date DESC";
                     $title = 'Overall Monthly Report for ' . $month;
                     $params = [':month' => $month];
                     break;
                 case 'annual':
                     $year = (string)($get['year'] ?? '');
-                    $query = "SELECT log_id, sn, model, type, owno, owname, action, comment, date FROM logs WHERE {$yearExpr} = :year ORDER BY date DESC";
+                    $query = "SELECT log_id, sn, model, type, owno, owname, action, checked_by, comment, date FROM logs WHERE {$yearExpr} = :year ORDER BY date DESC";
                     $title = 'Overall Annual Report for ' . $year;
                     $params = [':year' => $year];
                     break;
                 case 'individual':
                     $date = (string)($get['date'] ?? '');
                     $sn = (string)($get['sn'] ?? '');
-                    $query = "SELECT log_id, sn, model, type, owno, owname, action, comment, date FROM logs WHERE {$dateExpr} = :date AND sn = :sn ORDER BY date DESC";
+                    $query = "SELECT log_id, sn, model, type, owno, owname, action, checked_by, comment, date FROM logs WHERE {$dateExpr} = :date AND sn = :sn ORDER BY date DESC";
                     $title = 'Overall Individual Report on ' . $date . ' for SN ' . $sn;
                     $params = [':date' => $date, ':sn' => $sn];
                     break;
@@ -82,7 +90,7 @@ if (!function_exists('app_build_report')) {
                     throw new InvalidArgumentException('Invalid period selected.');
             }
         } else {
-            $columns = ['No', 'SN', 'Owner Type', 'Name', 'Check Time', 'Comment'];
+            $columns = ['No', 'SN', 'Owner Type', 'Name', 'Checked By', 'Check Time', 'Comment'];
             $label = $action === 'check-in' ? 'Checked In' : 'Checked Out';
             switch ($period) {
                 case 'daily':
@@ -93,7 +101,7 @@ if (!function_exists('app_build_report')) {
                     $end_minute = str_pad((string)($get['end_minute'] ?? '59'), 2, '0', STR_PAD_LEFT);
                     $start_datetime = $date . ' ' . $start_hour . ':' . $start_minute . ':00';
                     $end_datetime = $date . ' ' . $end_hour . ':' . $end_minute . ':59';
-                    $query = 'SELECT log_id, sn, type, owname AS name, date AS check_time, comment
+                    $query = 'SELECT log_id, sn, type, owname AS name, checked_by, date AS check_time, comment
                               FROM logs
                               WHERE action = :action AND date BETWEEN :start_datetime AND :end_datetime
                               ORDER BY date DESC';
@@ -107,26 +115,26 @@ if (!function_exists('app_build_report')) {
                 case 'weekly':
                     $startDate = (string)($get['start_date'] ?? '');
                     $endDate = (string)($get['end_date'] ?? '');
-                    $query = "SELECT log_id, sn, type, owname AS name, date AS check_time, comment FROM logs WHERE action = :action AND {$dateExpr} BETWEEN :start_date AND :end_date ORDER BY date DESC";
+                    $query = "SELECT log_id, sn, type, owname AS name, checked_by, date AS check_time, comment FROM logs WHERE action = :action AND {$dateExpr} BETWEEN :start_date AND :end_date ORDER BY date DESC";
                     $title = "Weekly Report of Computers {$label} from {$startDate} to {$endDate}";
                     $params = [':action' => $action, ':start_date' => $startDate, ':end_date' => $endDate];
                     break;
                 case 'monthly':
                     $month = (string)($get['month'] ?? '');
-                    $query = "SELECT log_id, sn, type, owname AS name, date AS check_time, comment FROM logs WHERE action = :action AND {$monthExpr} = :month ORDER BY date DESC";
+                    $query = "SELECT log_id, sn, type, owname AS name, checked_by, date AS check_time, comment FROM logs WHERE action = :action AND {$monthExpr} = :month ORDER BY date DESC";
                     $title = "Monthly Report of Computers {$label} for {$month}";
                     $params = [':action' => $action, ':month' => $month];
                     break;
                 case 'annual':
                     $year = (string)($get['year'] ?? '');
-                    $query = "SELECT log_id, sn, type, owname AS name, date AS check_time, comment FROM logs WHERE action = :action AND {$yearExpr} = :year ORDER BY date DESC";
+                    $query = "SELECT log_id, sn, type, owname AS name, checked_by, date AS check_time, comment FROM logs WHERE action = :action AND {$yearExpr} = :year ORDER BY date DESC";
                     $title = "Annual Report of Computers {$label} for {$year}";
                     $params = [':action' => $action, ':year' => $year];
                     break;
                 case 'individual':
                     $date = (string)($get['date'] ?? '');
                     $sn = (string)($get['sn'] ?? '');
-                    $query = "SELECT log_id, sn, type, owname AS name, date AS check_time, comment FROM logs WHERE action = :action AND {$dateExpr} = :date AND sn = :sn ORDER BY date DESC";
+                    $query = "SELECT log_id, sn, type, owname AS name, checked_by, date AS check_time, comment FROM logs WHERE action = :action AND {$dateExpr} = :date AND sn = :sn ORDER BY date DESC";
                     $title = "Individual Report of Computers {$label} on {$date} with SN {$sn}";
                     $params = [':action' => $action, ':date' => $date, ':sn' => $sn];
                     break;
@@ -164,6 +172,7 @@ if (!function_exists('app_report_flat_rows')) {
                     $row['owno'] ?? '',
                     $row['owname'] ?? '',
                     $row['action'] ?? '',
+                    $row['checked_by'] ?? '',
                     $row['date'] ?? '',
                     $row['comment'] ?? '',
                 ];
@@ -173,6 +182,7 @@ if (!function_exists('app_report_flat_rows')) {
                     $row['sn'] ?? '',
                     $row['type'] ?? '',
                     $row['name'] ?? '',
+                    $row['checked_by'] ?? '',
                     $row['check_time'] ?? '',
                     $row['comment'] ?? '',
                 ];

@@ -26,7 +26,7 @@ $preview = array_slice($recentFlat, 0, 20);
 
 // All rows that have a real comment
 $commentsStmt = $pdo->query(
-    "SELECT sn, model, type, owno, owname, action, comment, date
+    "SELECT sn, model, type, owno, owname, action, checked_by, comment, date
      FROM logs
      WHERE comment IS NOT NULL AND TRIM(comment) != ''
      ORDER BY date DESC"
@@ -371,6 +371,9 @@ $commentRows = $commentsStmt ? $commentsStmt->fetchAll(PDO::FETCH_ASSOC) : [];
                             <span class="badge <?php echo $cr['action'] === 'check-in' ? 'badge-in' : 'badge-out'; ?>">
                                 <?php echo htmlspecialchars($cr['action']); ?>
                             </span>
+                            <?php if (!empty($cr['checked_by'])): ?>
+                                · by <?php echo htmlspecialchars((string)$cr['checked_by']); ?>
+                            <?php endif; ?>
                         </div>
                         <div class="text"><?php echo htmlspecialchars($cr['comment']); ?></div>
                     </div>
@@ -506,7 +509,7 @@ $commentRows = $commentsStmt ? $commentsStmt->fetchAll(PDO::FETCH_ASSOC) : [];
                                                 <?php echo htmlspecialchars($act); ?>
                                             </span>
                                         </td>
-                                    <?php elseif ($idx === 8): ?>
+                                    <?php elseif ($idx === 9): ?>
                                         <?php $cmt = trim((string)$cell); ?>
                                         <td class="<?php echo $cmt === '' ? 'comment-empty' : 'comment-cell'; ?>">
                                             <?php echo $cmt === '' ? '—' : htmlspecialchars($cmt); ?>
