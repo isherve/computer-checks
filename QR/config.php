@@ -100,7 +100,7 @@ if (!function_exists('app_detect_lan_ip')) {
 if (!function_exists('app_log_form_url')) {
     function app_log_form_url(array $row): string
     {
-        // Short URL = denser, easier-to-scan QR (details loaded from DB on open)
-        return app_base_url() . '/log_form.php?sn=' . rawurlencode((string)$row['sn']);
+        // Short URL → authentication first, then gate log form (details loaded from DB)
+        return app_base_url() . '/gate-auth.php?sn=' . rawurlencode((string)$row['sn']);
     }
 }

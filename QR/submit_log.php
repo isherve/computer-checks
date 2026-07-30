@@ -16,57 +16,35 @@ $ownerNumber = trim((string)($_POST['owno'] ?? ''));
 $ownerName = trim((string)($_POST['owname'] ?? ''));
 $action = trim((string)($_POST['action'] ?? ''));
 $comment = trim((string)($_POST['comment'] ?? ''));
-$officerEmail = trim((string)($_POST['officer_email'] ?? ''));
-$officerPassword = (string)($_POST['officer_password'] ?? '');
 
-function redirect_log_form(string $sn, string $error, string $email = ''): void
+function redirect_log_form(string $sn, string $error): void
 {
-    $q = 'sn=' . urlencode($sn) . '&error=' . urlencode($error);
-    if ($email !== '') {
-        $q .= '&email=' . urlencode($email);
-    }
-    header('Location: log_form.php?' . $q);
+    header('Location: log_form.php?sn=' . urlencode($sn) . '&error=' . urlencode($error));
     exit;
 }
 
-if ($serialNumber === '' || $action === '') {
+if ($serialNumber === '') {
     header('Location: index.php');
     exit;
 }
 
-if (!in_array($action, ['check-in', 'check-out'], true)) {
-    redirect_log_form($serialNumber, 'Invalid action selected.', $officerEmail);
+// Must be authenticated before submitting
+if (empty($_SESSION['gate_auth']['names'])) {
+    header('Location: gate-auth.php?sn=' . rawurlencode($serialNumber));
+    exit;
 }
 
-if ($officerEmail === '' || $officerPassword === '') {
-    redirect_log_form($serialNumber, 'Officer email and password are required.', $officerEmail);
+if ($action === '' || !in_array($action, ['check-in', 'check-out'], true)) {
+    redirect_log_form($serialNumber, 'Invalid action selected.');
+}
+
+$checkedBy = trim((string)$_SESSION['gate_auth']['names']);
+if ($checkedBy === '') {
+    $checkedBy = (string)($_SESSION['gate_auth']['email'] ?? 'Unknown');
 }
 
 try {
     app_ensure_logs_checked_by($pdo);
-
-    $auth = $pdo->prepare('SELECT names, email, password, user_type FROM users WHERE email = :email LIMIT 1');
-    $auth->execute([':email' => $officerEmail]);
-    $officer = $auth->fetch(PDO::FETCH_ASSOC);
-
-    $passwordOk = false;
-    if ($officer) {
-        $stored = (string)($officer['password'] ?? '');
-        if ($stored !== '' && password_verify($officerPassword, $stored)) {
-            $passwordOk = true;
-        } elseif ($stored !== '' && hash_equals($stored, $officerPassword)) {
-            $passwordOk = true;
-        }
-    }
-
-    if (!$passwordOk) {
-        redirect_log_form($serialNumber, 'Incorrect email or password. Log was not saved.', $officerEmail);
-    }
-
-    $checkedBy = trim((string)($officer['names'] ?? ''));
-    if ($checkedBy === '') {
-        $checkedBy = (string)$officer['email'];
-    }
 
     $stmt = $pdo->prepare(
         'INSERT INTO logs (sn, model, type, owno, owname, action, comment, checked_by)
@@ -87,7 +65,7 @@ try {
         app_db_persist();
     }
 } catch (PDOException $e) {
-    redirect_log_form($serialNumber, 'Could not save log. Please try again.', $officerEmail);
+    redirect_log_form($serialNumber, 'Could not save log. Please try again.');
 }
 
 $sn = htmlspecialchars($serialNumber, ENT_QUOTES, 'UTF-8');
