@@ -210,6 +210,9 @@ $email = $user['names'];
             <?php if (isset($_GET['updated'])): ?>
               <div class="alert alert-success">Laptop information updated successfully.</div>
             <?php endif; ?>
+            <?php if (isset($_GET['deleted'])): ?>
+              <div class="alert alert-success">Laptop deleted successfully.</div>
+            <?php endif; ?>
             <?php if (!empty($_GET['error'])): ?>
               <div class="alert alert-danger"><?php echo htmlspecialchars((string)$_GET['error']); ?></div>
             <?php endif; ?>
@@ -253,6 +256,7 @@ if (isset($_POST['submit'])) {
                 echo "<p class='mb-1'><strong>Owner's Number:</strong> $owno</p>";
                 echo "<p class='mb-1'><strong>Owner's Name:</strong> $owname</p>";
                 echo "<a href='update-laptop.php?sn=" . $snParam . "' class='btn btn-warning btn-sm mr-1'>Edit</a>";
+                echo "<a href='delete-laptop.php?sn=" . $snParam . "' class='btn btn-danger btn-sm mr-1' onclick=\"return confirm('Delete this laptop record?');\">Delete</a>";
                 echo "<a href='test-qr.php?name=" . $nameParam . "' class='open-in-new-tab'>
                         <button type='button' class='btn btn-primary btn-sm'>Generate QR Code</button>
                       </a>";
@@ -310,6 +314,7 @@ function selectStudent(){
             echo "<td>" . htmlspecialchars($row['owname']) . "</td>";
             echo "<td style='white-space:nowrap;'>
                     <a href='update-laptop.php?sn=" . $snParam . "' class='btn btn-warning btn-sm mr-1'>Edit</a>
+                    <a href='delete-laptop.php?sn=" . $snParam . "' class='btn btn-danger btn-sm mr-1' onclick=\"return confirm('Delete this laptop record?');\">Delete</a>
                     <a href='test-qr.php?name=" . $nameParam . "' class='open-in-new-tab' target='_blank'>
                         <button type='button' class='btn btn-primary btn-sm'>Generate QR Code</button>
                     </a>
