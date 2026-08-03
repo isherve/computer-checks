@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Computer Checks | Update Form</title>
+    <title>Device Check | Update Form</title>
 </head>
 <body>
 

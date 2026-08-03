@@ -187,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     
     <header>
-        <h5>Computer Checks</h5>
+        <h5>Device Check</h5>
     </header>
 
     <section>

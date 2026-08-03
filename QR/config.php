@@ -1,6 +1,6 @@
 <?php
 /**
- * App configuration helpers for Computer Checks
+ * App configuration helpers for Device Check
  */
 
 /**

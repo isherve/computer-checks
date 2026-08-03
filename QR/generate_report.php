@@ -44,7 +44,7 @@ if ($format === 'csv') {
     fwrite($out, "\xEF\xBB\xBF");
     fputcsv($out, [$title]);
     fputcsv($out, ['Generated', date('Y-m-d H:i:s')]);
-    fputcsv($out, ['Campus', 'UTBrubavu – Computer Checks']);
+    fputcsv($out, ['Campus', 'UTBrubavu – Device Check']);
     fputcsv($out, []);
     fputcsv($out, $report['columns']);
     foreach ($flat as $row) {
@@ -66,7 +66,7 @@ if ($format === 'pdf') {
         $landscape = count($report['columns']) > 6;
         $pdf = new SimpleReportPdf($landscape);
         $pdf->setTitle($title);
-        $pdf->heading('Computer Checks - UTBrubavu', 14);
+        $pdf->heading('Device Check - UTBrubavu', 14);
         $pdf->heading($title, 11);
         $pdf->line(
             'Generated: ' . date('Y-m-d H:i:s') .
@@ -77,7 +77,7 @@ if ($format === 'pdf') {
         $pdf->line('');
         $pdf->table($report['columns'], $flat, $landscape ? 7 : 8);
         $pdf->line('');
-        $pdf->line('UTBrubavu Computer Checks', 8);
+        $pdf->line('UTBrubavu Device Check', 8);
         $filename = 'computer-checks-report-' . date('Ymd-His') . '.pdf';
         $pdf->outputDownload($filename);
     } catch (Throwable $e) {
@@ -131,7 +131,7 @@ $pdfUrl = 'generate_report.php?' . http_build_query($pdfParams);
 <body>
 <header class="no-print">
     <h1><?php echo htmlspecialchars($user_type); ?> | Logs</h1>
-    <h5>Computer Checks — UTBrubavu</h5>
+    <h5>Device Check — UTBrubavu</h5>
 </header>
 <div class="wrap">
     <div class="toolbar no-print">

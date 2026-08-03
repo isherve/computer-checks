@@ -127,7 +127,7 @@ class SimpleReportPdf
         $objs = [];
         $objs[1] = '<< /Type /Catalog /Pages 2 0 R >>';
         $objs[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
-        $objs[4] = '<< /Title (' . $this->escape($this->sanitize($this->docTitle)) . ') /Creator (Computer Checks) /Author (UTBrubavu) >>';
+        $objs[4] = '<< /Title (' . $this->escape($this->sanitize($this->docTitle)) . ') /Creator (Device Check) /Author (UTBrubavu) >>';
 
         $kidRefs = [];
         $next = 5;

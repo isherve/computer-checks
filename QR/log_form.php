@@ -12,7 +12,7 @@ $owname = isset($_GET['owname']) ? (string)$_GET['owname'] : '';
 $error = isset($_GET['error']) ? (string)$_GET['error'] : '';
 
 if ($sn === '') {
-    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Invalid QR</title></head><body style="font-family:Arial;padding:24px;"><div><h1>Invalid QR</h1><p style="color:#c0392b;">No computer data found in the link. Generate a new QR code from Computer Checks.</p></div></body></html>';
+    echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Invalid QR</title></head><body style="font-family:Arial;padding:24px;"><div><h1>Invalid QR</h1><p style="color:#c0392b;">No computer data found in the link. Generate a new QR code from Device Check.</p></div></body></html>';
     exit;
 }
 
@@ -74,7 +74,7 @@ function h($v)
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Computer Checks | Gate Log</title>
+    <title>Device Check | Gate Log</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -163,7 +163,7 @@ function h($v)
 </head>
 <body>
     <div class="container">
-        <div class="brand">Computer Checks</div>
+        <div class="brand">Device Check</div>
         <h1>Gate Log Form</h1>
 
         <div class="officer-bar">

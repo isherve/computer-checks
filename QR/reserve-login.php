@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Computer Checks</title>
+  <title>Device Check</title>
   <!-- Bootstrap CSS -->
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="icons/css/all.css">
@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!-- Header -->
 <div class="header">
-  <h1><img src="img/QR-logo.jpg" alt="Logo" class="logo img-fluid col-md-4  image-container">Computer Checks</h1>
+  <h1><img src="img/QR-logo.jpg" alt="Logo" class="logo img-fluid col-md-4  image-container">Device Check</h1>
   <p style="text-align:center;">UTBrubavu</p>
 </div>
 
@@ -133,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div class="container">
     <div class="row">
       <div class="col-md-6">
-        <h2>Welcome to Computer Checks</h2>
+        <h2>Welcome to Device Check</h2>
         <p>This system allows you to easily record information about laptops using QR codes. You can record details such as serial number, model, owner's registration number, and owner's name.</p>
         <p>To get started, you need to be sure of being registered by sytem administrator</p>
 

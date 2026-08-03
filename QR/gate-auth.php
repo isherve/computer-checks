@@ -154,7 +154,7 @@ function h($v)
 </head>
 <body>
 <div class="container">
-    <div class="brand">Computer Checks</div>
+    <div class="brand">Device Check</div>
     <h1>Authentication Required</h1>
     <p class="sub">Enter your account password to continue.<br>Laptop SN: <span class="sn"><?php echo h($sn); ?></span></p>
 

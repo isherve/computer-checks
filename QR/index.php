@@ -55,14 +55,14 @@
 <body>
 
 <div class="container">
-    <h4>Welcome to<br>Computer Checks</h4>
+    <h4>Welcome to<br>Device Check</h4>
     <!-- <p>Check computers easily using QR codes</p> -->
     <a href="login.php" class="btn btn-lg">Get Started</a>
    
 </div>
 
 <div class="footer">
-    <p>&copy; UTBrubavu Computer Checks. All rights reserved.</p>
+    <p>&copy; UTBrubavu Device Check. All rights reserved.</p>
 </div>
 
 <!-- Bootstrap JS and dependencies -->
