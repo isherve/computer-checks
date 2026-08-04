@@ -38,7 +38,7 @@ $commentRows = $commentsStmt ? $commentsStmt->fetchAll(PDO::FETCH_ASSOC) : [];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Device Check | Logs</title>
+    <title>QR-BASED COMPUTER TRACKING SOLUTION | Logs</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="icons/css/all.css">
     <style>
@@ -292,7 +292,7 @@ $commentRows = $commentsStmt ? $commentsStmt->fetchAll(PDO::FETCH_ASSOC) : [];
     <img src="img/QR-logo.jpg" alt="Logo" class="logo">
     <div>
         <h1><?php echo htmlspecialchars($user_type); ?> | Logs</h1>
-        <h5>Welcome, <?php echo htmlspecialchars($displayName); ?> — Device Check · UTBrubavu</h5>
+        <h5>Welcome, <?php echo htmlspecialchars($displayName); ?> — QR-BASED COMPUTER TRACKING SOLUTION · ULK Gisenyi</h5>
     </div>
 </header>
 

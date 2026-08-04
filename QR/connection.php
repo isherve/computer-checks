@@ -376,7 +376,7 @@ if (!isset($GLOBALS['pdo']) || !($GLOBALS['pdo'] instanceof PDO)) {
     } catch (PDOException $e) {
         http_response_code(500);
         echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Database</title></head><body style="font-family:Arial;padding:2rem;">';
-        echo '<h2>Device Check – Database connection failed</h2>';
+        echo '<h2>QR-BASED COMPUTER TRACKING SOLUTION – Database connection failed</h2>';
         echo '<p>Could not connect to the database.</p>';
         echo '<p style="color:#666;font-size:0.9rem;">' . htmlspecialchars($e->getMessage()) . '</p>';
         echo '</body></html>';

@@ -62,7 +62,7 @@ if ($sn !== '') {
 <header>
   <img src="img/QR-logo.jpg" alt="Logo" class="logo img-fluid col-md-4 mt-0 image-container float-left">
   <h1>User | Dashboard</h1>
-  <h5>Device Check</h5>
+  <h5>QR-BASED COMPUTER TRACKING SOLUTION</h5>
 </header>
 
 <div class="sidebar">

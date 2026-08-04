@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Device Check | Update Form</title>
+    <title>QR-BASED COMPUTER TRACKING SOLUTION | Update Form</title>
 </head>
 <body>
 

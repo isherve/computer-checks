@@ -177,7 +177,7 @@ $email = $user['names'];
   
         <h1>Admin | Dashboard</h1>
          
-        <h5>Device Check</h5>
+        <h5>QR-BASED COMPUTER TRACKING SOLUTION</h5>
   
     </header>
 

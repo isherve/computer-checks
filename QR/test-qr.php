@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Device Check | QR Code</title>
+    <title>QR-BASED COMPUTER TRACKING SOLUTION | QR Code</title>
     <style>
         body {
             font-family: Arial, sans-serif;

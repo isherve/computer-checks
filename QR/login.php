@@ -187,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     
     <header>
-        <h5>Device Check</h5>
+        <h5>QR-BASED COMPUTER TRACKING SOLUTION</h5>
     </header>
 
     <section>

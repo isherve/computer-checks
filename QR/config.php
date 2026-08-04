@@ -1,6 +1,6 @@
 <?php
 /**
- * App configuration helpers for Device Check
+ * App configuration helpers for QR-BASED COMPUTER TRACKING SOLUTION
  */
 
 /**
