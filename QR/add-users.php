@@ -137,25 +137,7 @@ if (isset($_POST['submit'])) {
 </header>
 
 <div class="sidebar">
-  <nav class="sidebar-sticky mt-5">
-    <ul class="nav flex-column">
-      <li class="nav-item">
-        <a class="nav-link" href="admin-dashboard.php"><i class="fa fa-home"></i> Dashboard</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="view-users.php"><i class="fa fa-eye"></i> View Users</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link active" href="add-users.php"><i class="fa fa-plus-circle"></i> Add new user</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="change-password.php"><i class="fa fa-pencil"></i> Change Password</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="logout.php"><i class="fa fa-sign-out"></i> Logout</a>
-      </li>
-    </ul>
-  </nav>
+  <?php $activePage = 'add-users'; require __DIR__ . '/sidebar_nav.php'; ?>
 </div>
 
 <div class="main-content">

@@ -299,37 +299,7 @@ $commentRows = $commentsStmt ? $commentsStmt->fetchAll(PDO::FETCH_ASSOC) : [];
 <div class="shell">
     <aside class="sidebar">
         <nav>
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link" href="<?php echo htmlspecialchars($dash); ?>"><i class="fa fa-home"></i> Dashboard</a>
-                </li>
-                <?php if (!$isAdmin): ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="view-laptops.php"><i class="fa fa-eye"></i> View Laptops</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="record-computers.php"><i class="fa fa-plus-circle"></i> Record New Laptop</a>
-                </li>
-                <?php else: ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="view-users.php"><i class="fa fa-eye"></i> View Users</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="add-users.php"><i class="fa fa-plus-circle"></i> Add new user</a>
-                </li>
-                <?php endif; ?>
-                <li class="nav-item">
-                    <a class="nav-link active" href="report.php"><i class="fa fa-book"></i> Logs</a>
-                </li>
-                <?php if (!$isAdmin): ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="change-password.php"><i class="fa fa-pencil"></i> Change Password</a>
-                </li>
-                <?php endif; ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="logout.php"><i class="fa fa-sign-out"></i> Logout</a>
-                </li>
-            </ul>
+            <?php $activePage = 'logs'; require __DIR__ . '/sidebar_nav.php'; ?>
         </nav>
     </aside>
 
