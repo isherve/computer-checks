@@ -152,7 +152,47 @@ $email = $user['names'];
 <div class="sidebar">
   
     
-    <?php $activePage = 'view-laptops'; require __DIR__ . '/sidebar_nav.php'; ?>
+    <nav class="sidebar-sticky mt-5">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link active" href="user-dashboard.php">
+         <i class="fa fa-home" aria-hidden="true"></i>
+          Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="view-laptops.php">
+          <i class="fa fa-eye" aria-hidden="true"></i>
+          View Laptops
+        </a>
+      </li>
+      <li class="nav-item">
+        
+        <a class="nav-link" href="record-computers.php">
+        <i class="fa fa-plus-circle" aria-hidden="true"></i>
+         Record New Laptop 
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="report.php">
+          <i class="fa fa-book" aria-hidden="true"></i>
+          Logs
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="change-password.php">
+          <i class="fa fa-pencil" aria-hidden="true"></i>
+          Change Password
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="logout.php">
+          <i class="fa fa-sign-out" aria-hidden="true"></i>
+          Logout
+        </a>
+      </li>
+    </ul>
+  </nav>
 </div>
 
  
@@ -217,7 +257,7 @@ if (isset($_POST['submit'])) {
                 echo "<p class='mb-1'><strong>Owner's Name:</strong> $owname</p>";
                 echo "<a href='update-laptop.php?sn=" . $snParam . "' class='btn btn-warning btn-sm mr-1'>Edit</a>";
                 echo "<a href='delete-laptop.php?sn=" . $snParam . "' class='btn btn-danger btn-sm mr-1' onclick=\"return confirm('Delete this laptop record?');\">Delete</a>";
-                echo "<a href='test-qr.php?sn=" . $snParam . "' class='open-in-new-tab'>
+                echo "<a href='test-qr.php?name=" . $nameParam . "' class='open-in-new-tab'>
                         <button type='button' class='btn btn-primary btn-sm'>Generate QR Code</button>
                       </a>";
                 echo "</div>";
@@ -275,7 +315,7 @@ function selectStudent(){
             echo "<td style='white-space:nowrap;'>
                     <a href='update-laptop.php?sn=" . $snParam . "' class='btn btn-warning btn-sm mr-1'>Edit</a>
                     <a href='delete-laptop.php?sn=" . $snParam . "' class='btn btn-danger btn-sm mr-1' onclick=\"return confirm('Delete this laptop record?');\">Delete</a>
-                    <a href='test-qr.php?sn=" . $snParam . " "' class='open-in-new-tab' target='_blank'>
+                    <a href='test-qr.php?name=" . $nameParam . "' class='open-in-new-tab' target='_blank'>
                         <button type='button' class='btn btn-primary btn-sm'>Generate QR Code</button>
                     </a>
                   </td>";

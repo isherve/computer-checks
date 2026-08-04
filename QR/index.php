@@ -51,8 +51,6 @@
     .btn:hover {
         background-color: #0056b3;
     }
-    .btn-success { background-color: #28a745; margin-left: 8px; }
-    .btn-success:hover { background-color: #1e7e34; }
     .hero-img {
         width: 100%;
         max-width: 600px;
@@ -84,13 +82,8 @@
 <div class="container">
     <h4>Welcome to the<br><span class="brand-name">QR-BASED COMPUTER TRACKING SOLUTION</span></h4>
     <!-- <p>Check computers easily using QR codes</p> -->
-    <a href="login.php" class="btn btn-lg">Staff Login (Admin / Gate Officer)</a>
-    <a href="gate-check.php" class="btn btn-lg btn-success ml-2">Gate Check Portal</a>
-    <p class="mt-4" style="font-size:0.9rem;max-width:34em;margin-left:auto;margin-right:auto;">
-      Portals: <strong>Admin</strong> (users + devices + logs),
-      <strong>Gate Officer</strong> (register devices, QR, logs),
-      <strong>Gate Check</strong> (authenticate &amp; check-in/out).
-    </p>
+    <a href="login.php" class="btn btn-lg">Get Started</a>
+   
 </div>
 
 <div class="footer">

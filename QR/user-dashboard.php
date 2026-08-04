@@ -189,7 +189,52 @@ $email = $user['names'];
 <div class="sidebar">
   
 
-    <?php $activePage = 'dashboard'; require __DIR__ . '/sidebar_nav.php'; ?>
+    <nav class="sidebar-sticky mt-5">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link active" href="user-dashboard.php">
+         <i class="fa fa-home" aria-hidden="true"></i>
+          Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="view-laptops.php">
+          <i class="fa fa-eye" aria-hidden="true"></i>
+          View Laptops
+        </a>
+      </li>
+      <li class="nav-item">
+        
+        <a class="nav-link" href="record-computers.php">
+        <i class="fa fa-plus-circle" aria-hidden="true"></i>
+         Record New Laptop 
+        </a>
+      </li>
+
+      <li class="nav-item">
+        
+        <a class="nav-link" href="report.php">
+        <i class="fa fa-book" aria-hidden="true" ></i>
+        Logs
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        
+        <a class="nav-link" href="change-password.php">
+        <i class="fa fa-pencil" aria-hidden="true"></i>
+         Change Password 
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="logout.php">
+          <i class="fa fa-sign-out" aria-hidden="true"></i>
+          Logout
+        </a>
+      </li>
+    </ul>
+  </nav>
 </div>
 </div>
 
@@ -198,17 +243,6 @@ $email = $user['names'];
 
 <!-- Main Content -->
 <div class="col-md-10 right-division">
-  <div class="p-3">
-    <h4 class="mb-3">Gate Officer Portals</h4>
-    <div class="row portal-links">
-      <div class="col-md-4 mb-2"><a class="btn btn-sm btn-outline-primary btn-block" href="view-laptops.php">View Laptops</a></div>
-      <div class="col-md-4 mb-2"><a class="btn btn-sm btn-outline-primary btn-block" href="record-computers.php">Record Laptop</a></div>
-      <div class="col-md-4 mb-2"><a class="btn btn-sm btn-outline-primary btn-block" href="report.php">Logs</a></div>
-      <div class="col-md-4 mb-2"><a class="btn btn-sm btn-outline-success btn-block" href="gate-check.php">Gate Check Portal</a></div>
-      <div class="col-md-4 mb-2"><a class="btn btn-sm btn-outline-secondary btn-block" href="change-password.php">Change Password</a></div>
-    </div>
-  </div>
-
             <div class="header">
                 <!-- <button class="menu-toggle"><i class="fas fa-bars"></i></button> -->
               <!--   <div class="search-container ">

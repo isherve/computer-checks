@@ -153,7 +153,36 @@ $email = $user['names'];
 <div class="sidebar">
   
     
-    <?php $activePage = 'change-password'; require __DIR__ . '/sidebar_nav.php'; ?>
+    <nav class="sidebar-sticky mt-5">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link active" href="user-dashboard.php">
+         <i class="fa fa-home" aria-hidden="true"></i>
+          Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="view-laptops.php">
+          <i class="fa fa-eye" aria-hidden="true"></i>
+          View Laptops
+        </a>
+      </li>
+      <li class="nav-item">
+        
+        <a class="nav-link" href="record-computers.php">
+        <i class="fa fa-plus-circle" aria-hidden="true"></i>
+         Record New Laptop 
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="logout.php">
+          <i class="fa fa-sign-out" aria-hidden="true"></i>
+          Logout
+        </a>
+      </li>
+    </ul>
+  </nav>
 </div>
 
  

@@ -62,7 +62,39 @@ $msg = $_GET['msg'] ?? '';
 </header>
 
 <div class="sidebar">
-  <?php $activePage = 'change-password'; require __DIR__ . '/sidebar_nav.php'; ?>
+  <nav class="sidebar-sticky mt-5">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link" href="<?php echo htmlspecialchars($dash); ?>">
+          <i class="fa fa-home"></i> Dashboard
+        </a>
+      </li>
+      <?php if ($isAdmin): ?>
+      <li class="nav-item">
+        <a class="nav-link" href="view-users.php"><i class="fa fa-eye"></i> View Users</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="add-users.php"><i class="fa fa-plus-circle"></i> Add new user</a>
+      </li>
+      <?php else: ?>
+      <li class="nav-item">
+        <a class="nav-link" href="view-laptops.php"><i class="fa fa-eye"></i> View Laptops</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="record-computers.php"><i class="fa fa-plus-circle"></i> Record New Laptop</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="report.php"><i class="fa fa-book"></i> Logs</a>
+      </li>
+      <?php endif; ?>
+      <li class="nav-item">
+        <a class="nav-link active" href="change-password.php"><i class="fa fa-pencil"></i> Change Password</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="logout.php"><i class="fa fa-sign-out"></i> Logout</a>
+      </li>
+    </ul>
+  </nav>
 </div>
 
 <div class="main-content">
